@@ -13,6 +13,7 @@ import Debts from "./pages/Debts";
 import Lands from "./pages/Lands";
 import Plates from "./pages/Plates";
 import Destinations from "./pages/Destinations";
+import Summaries from "./pages/Summaries";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ const App = () => (
           <Route path="/lands" element={<DashboardLayout><Lands /></DashboardLayout>} />
           <Route path="/plates" element={<DashboardLayout><Plates /></DashboardLayout>} />
           <Route path="/destinations" element={<DashboardLayout><Destinations /></DashboardLayout>} />
+          <Route path="/summaries" element={<DashboardLayout><Summaries /></DashboardLayout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

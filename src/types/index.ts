@@ -18,6 +18,7 @@ export interface Travel {
   driver: string; // Employee ID
   plateNumber: string;
   destination: string;
+  tons: number;
   groups: {
     groupId: string;
     attendance: {

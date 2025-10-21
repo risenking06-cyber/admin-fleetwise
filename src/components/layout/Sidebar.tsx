@@ -8,7 +8,8 @@ import {
   CreditCard, 
   MapPin, 
   Hash,
-  Target
+  Target,
+  FileText
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -22,6 +23,7 @@ const menuItems = [
   { icon: MapPin, label: 'Lands', path: '/lands' },
   { icon: Hash, label: 'Plates', path: '/plates' },
   { icon: Target, label: 'Destinations', path: '/destinations' },
+  { icon: FileText, label: 'Summaries', path: '/summaries' },
 ];
 
 export const Sidebar = () => {

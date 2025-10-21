@@ -54,6 +54,7 @@ export default function Travels() {
     driver: '',
     plateNumber: '',
     destination: '',
+    tons: 0,
     groups: [] as { groupId: string; attendance: { employeeId: string; present: boolean }[] }[]
   });
 
@@ -83,7 +84,7 @@ export default function Travels() {
       await addDoc(collection(db, 'travels'), formData);
       toast.success('Travel created successfully');
       setIsDialogOpen(false);
-      setFormData({ name: '', land: '', driver: '', plateNumber: '', destination: '', groups: [] });
+      setFormData({ name: '', land: '', driver: '', plateNumber: '', destination: '', tons: 0, groups: [] });
       fetchAll();
     } catch (error) {
       toast.error('Operation failed');
@@ -189,6 +190,17 @@ export default function Travels() {
                     <SelectContent>{destinations.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
+              </div>
+              <div>
+                <Label>Tons</Label>
+                <Input 
+                  type="number" 
+                  min="0" 
+                  step="0.01" 
+                  value={formData.tons} 
+                  onChange={(e) => setFormData({ ...formData, tons: parseFloat(e.target.value) || 0 })} 
+                  required 
+                />
               </div>
               <div>
                 <Label>Select Groups</Label>
