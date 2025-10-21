@@ -49,6 +49,8 @@ export default function Travels() {
     setDestinations(destinationsData.docs.map(doc => ({ id: doc.id, ...doc.data() })));
   };
 
+
+
   const [formData, setFormData] = useState({
     name: '',
     land: '',
@@ -56,6 +58,11 @@ export default function Travels() {
     plateNumber: '',
     destination: '',
     tons: 0,
+    ticket:'',
+    bags:0,
+    sugarcane_price:0,
+    molasses:0,
+    molasses_price:0,
     groups: [] as { groupId: string; attendance: { employeeId: string; present: boolean }[] }[]
   });
 
@@ -91,7 +98,18 @@ export default function Travels() {
       }
       setIsDialogOpen(false);
       setEditingTravel(null);
-      setFormData({ name: '', land: '', driver: '', plateNumber: '', destination: '', tons: 0, groups: [] });
+      setFormData({ 
+        name: '', 
+        land: '', 
+        driver: '', 
+        plateNumber: '', 
+        destination: '', 
+        tons: 0,
+        ticket:'',
+        bags:0,
+        sugarcane_price:0,
+        molasses:0,
+        molasses_price:0, groups: [] });
       fetchAll();
     } catch (error) {
       toast.error('Operation failed');
@@ -147,6 +165,11 @@ export default function Travels() {
       plateNumber: travel.plateNumber,
       destination: travel.destination,
       tons: travel.tons,
+      ticket:travel.ticket,
+      bags:travel.bags,
+      sugarcane_price:travel.sugarcane_price,
+      molasses:travel.molasses,
+      molasses_price:travel.molasses_price,
       groups: travel.groups || []
     });
     setIsDialogOpen(true);
@@ -156,7 +179,18 @@ export default function Travels() {
     setIsDialogOpen(open);
     if (!open) {
       setEditingTravel(null);
-      setFormData({ name: '', land: '', driver: '', plateNumber: '', destination: '', tons: 0, groups: [] });
+      setFormData({ 
+        name: '', 
+        land: '', 
+        driver: '', 
+        plateNumber: '', 
+        destination: '', 
+        tons: 0,
+        ticket:'',
+        bags:0,
+        sugarcane_price:0,
+        molasses:0,
+        molasses_price:0, groups: [] });
     }
   };
 
@@ -220,17 +254,67 @@ export default function Travels() {
                   </Select>
                 </div>
               </div>
-              <div>
-                <Label>Tons</Label>
-                <Input 
-                  type="number" 
-                  min="0" 
-                  step="0.01" 
-                  value={formData.tons} 
-                  onChange={(e) => setFormData({ ...formData, tons: parseFloat(e.target.value) || 0 })} 
-                  required 
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Ticket</Label>
+                  <Input value={formData.ticket} onChange={(e) => setFormData({ ...formData, ticket: e.target.value })}  />
+                </div>
+                <div>
+                  <Label>Tons</Label>
+                  <Input 
+                    type="number" 
+                    min="0" 
+                    step="0.01" 
+                    value={formData.tons} 
+                    onChange={(e) => setFormData({ ...formData, tons: parseFloat(e.target.value) || 0 })} 
+                  />
+                </div>
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Sugarcane Price</Label>
+                  <Input 
+                    type="number" 
+                    min="0" 
+                    step="0.01" 
+                    value={formData.sugarcane_price} 
+                    onChange={(e) => setFormData({ ...formData, sugarcane_price: parseFloat(e.target.value) || 0 })} 
+                  />
+                </div>
+                <div>
+                  <Label>Bags</Label>
+                  <Input 
+                    type="number" 
+                    min="0" 
+                    step="0.01" 
+                    value={formData.bags} 
+                    onChange={(e) => setFormData({ ...formData, bags: parseFloat(e.target.value) || 0 })} 
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Molasses Price</Label>
+                  <Input 
+                    type="number" 
+                    min="0" 
+                    step="0.01" 
+                    value={formData.molasses_price} 
+                    onChange={(e) => setFormData({ ...formData, molasses_price: parseFloat(e.target.value) || 0 })} 
+                  />
+                </div>
+                <div>
+                  <Label>Molasses</Label>
+                  <Input 
+                    type="number" 
+                    min="0" 
+                    step="0.01" 
+                    value={formData.molasses} 
+                    onChange={(e) => setFormData({ ...formData, molasses: parseFloat(e.target.value) || 0 })} 
+                  />
+                </div>
+              </div>
+
               <div>
                 <Label>Select Groups</Label>
                 <div className="mt-2 space-y-2 max-h-40 overflow-y-auto border border-border rounded-lg p-4">
