@@ -4,18 +4,18 @@ import { db } from '@/lib/firebase';
 import { Travel, Group, Employee } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { UsersRound, TrendingUp } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { UsersRound, User, MapPin, TrendingUp, Wallet, CreditCard, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
 
 export default function Summaries() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [travels, setTravels] = useState<Travel[]>([]);
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
-  const [selectedEmployee, setSelectedEmployee] = useState<{ employee: Employee; groupId: string } | null>(null);
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [groupDialogOpen, setGroupDialogOpen] = useState(false);
-  const [employeeDialogOpen, setEmployeeDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchAll();
@@ -83,12 +83,12 @@ export default function Summaries() {
 
   const handleGroupClick = (group: Group) => {
     setSelectedGroup(group);
+    setSelectedEmployee(null);
     setGroupDialogOpen(true);
   };
 
-  const handleEmployeeClick = (employee: Employee, groupId: string) => {
-    setSelectedEmployee({ employee, groupId });
-    setEmployeeDialogOpen(true);
+  const handleEmployeeClick = (employee: Employee) => {
+    setSelectedEmployee(employee);
   };
 
   return (
@@ -131,123 +131,240 @@ export default function Summaries() {
         })}
       </div>
 
-      {/* Group Travels Dialog */}
-      <Dialog open={groupDialogOpen} onOpenChange={setGroupDialogOpen}>
-        <DialogContent className="max-w-5xl max-h-[80vh] overflow-y-auto">
+      {/* Group Summary Dialog */}
+      <Dialog open={groupDialogOpen} onOpenChange={(open) => { setGroupDialogOpen(open); if (!open) setSelectedEmployee(null); }}>
+        <DialogContent className="max-w-7xl max-h-[85vh]">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <UsersRound className="w-5 h-5" />
-              {selectedGroup?.name} - Travel Summary
-            </DialogTitle>
+            <DialogTitle className="text-2xl">EMPLOYEE AND INCOME SUMMARY</DialogTitle>
           </DialogHeader>
-          <div className="space-y-6">
-            {selectedGroup && getGroupTravels(selectedGroup.id).map(travel => {
-              const travelGroup = travel.groups?.find(g => g.groupId === selectedGroup.id);
-              if (!travelGroup) return null;
+          
+          <Tabs defaultValue="employees" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="employees">Employee Summary</TabsTrigger>
+              <TabsTrigger value="income">Income Summary</TabsTrigger>
+            </TabsList>
 
-              return (
-                <Card key={travel.id}>
-                  <CardHeader>
-                    <CardTitle className="text-lg">{travel.name}</CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      Tons: {travel.tons} | Present: {getEmployeePresentCount(travel, selectedGroup.id)}
-                    </p>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b border-border">
-                            <th className="text-left py-2 px-4 text-sm font-semibold">Employee</th>
-                            <th className="text-left py-2 px-4 text-sm font-semibold">Status</th>
-                            <th className="text-right py-2 px-4 text-sm font-semibold">Wage</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {travelGroup.attendance.map(att => {
-                            const employee = employees.find(e => e.id === att.employeeId);
-                            if (!employee) return null;
-                            const wage = calculateEmployeeWage(travel, att.employeeId, selectedGroup.id);
+            <TabsContent value="employees" className="mt-6">
+              <div className="grid grid-cols-3 gap-6 h-[calc(85vh-12rem)] overflow-hidden">
+                {/* Employee List */}
+                <div className="col-span-1 space-y-3 overflow-y-auto pr-2">
+                  <h3 className="font-semibold text-sm text-muted-foreground mb-4">Employees</h3>
+                  {selectedGroup?.employees.map(empId => {
+                    const employee = employees.find(e => e.id === empId);
+                    if (!employee) return null;
+                    const empTravels = getEmployeeTravels(empId, selectedGroup.id);
+                    const totalWage = getEmployeeTotalWage(empId, selectedGroup.id);
+                    const totalTons = empTravels.reduce((sum, t) => sum + (t.tons || 0), 0);
+                    const presentCount = empTravels.length;
+                    const absentCount = getGroupTravels(selectedGroup.id).length - presentCount;
 
+                    return (
+                      <Card 
+                        key={empId}
+                        className={`cursor-pointer transition-all hover:shadow-md ${selectedEmployee?.id === empId ? 'border-primary border-2' : ''}`}
+                        onClick={() => handleEmployeeClick(employee)}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                              <User className="w-5 h-5 text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-semibold text-sm">{employee.name}</h4>
+                              <p className="text-xs text-muted-foreground">active • {employee.type}</p>
+                              
+                              <div className="grid grid-cols-2 gap-2 mt-3 text-xs">
+                                <div className="flex items-center gap-1">
+                                  <MapPin className="w-3 h-3 text-muted-foreground" />
+                                  <span>{presentCount}</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <TrendingUp className="w-3 h-3 text-muted-foreground" />
+                                  <span>{totalTons.toFixed(2)}</span>
+                                </div>
+                                <div className="col-span-2 flex items-center gap-1">
+                                  <Wallet className="w-3 h-3 text-muted-foreground" />
+                                  <span className="font-medium">₱{totalWage.toFixed(2)}</span>
+                                </div>
+                                <div className="col-span-2 flex items-center gap-2 text-xs">
+                                  <div className="flex items-center gap-1">
+                                    <User className="w-3 h-3 text-green-600" />
+                                    <span className="text-green-600">{presentCount}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <User className="w-3 h-3 text-destructive" />
+                                    <span className="text-destructive">{absentCount}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+
+                {/* Employee Details */}
+                <div className="col-span-2 overflow-y-auto">
+                  {selectedEmployee && selectedGroup ? (
+                    <div className="space-y-6">
+                      <div className="flex items-start gap-4">
+                        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                          <User className="w-8 h-8 text-primary" />
+                        </div>
+                        <div>
+                          <h3 className="text-2xl font-bold">{selectedEmployee.name}</h3>
+                          <p className="text-muted-foreground">active • {selectedEmployee.type}</p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-5 gap-4">
+                        <Card>
+                          <CardContent className="p-4 text-center">
+                            <MapPin className="w-5 h-5 text-blue-600 mx-auto mb-2" />
+                            <p className="text-xs text-muted-foreground mb-1">Travels</p>
+                            <p className="text-xl font-bold">{getEmployeeTravels(selectedEmployee.id, selectedGroup.id).length}</p>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="p-4 text-center">
+                            <TrendingUp className="w-5 h-5 text-green-600 mx-auto mb-2" />
+                            <p className="text-xs text-muted-foreground mb-1">Tons</p>
+                            <p className="text-xl font-bold">
+                              {getEmployeeTravels(selectedEmployee.id, selectedGroup.id).reduce((sum, t) => sum + (t.tons || 0), 0).toFixed(2)}
+                            </p>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="p-4 text-center">
+                            <Wallet className="w-5 h-5 text-yellow-600 mx-auto mb-2" />
+                            <p className="text-xs text-muted-foreground mb-1">Wage</p>
+                            <p className="text-xl font-bold text-yellow-600">
+                              ₱{getEmployeeTotalWage(selectedEmployee.id, selectedGroup.id).toFixed(2)}
+                            </p>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="p-4 text-center">
+                            <CreditCard className="w-5 h-5 text-red-600 mx-auto mb-2" />
+                            <p className="text-xs text-muted-foreground mb-1">Debts</p>
+                            <p className="text-xl font-bold text-red-600">₱0.00</p>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="p-4 text-center">
+                            <CheckCircle2 className="w-5 h-5 text-purple-600 mx-auto mb-2" />
+                            <p className="text-xs text-muted-foreground mb-1">Attendance</p>
+                            <div className="flex items-center justify-center gap-2">
+                              <span className="text-lg font-bold text-green-600">{getEmployeeTravels(selectedEmployee.id, selectedGroup.id).length}</span>
+                              <span className="text-lg font-bold text-destructive">
+                                {getGroupTravels(selectedGroup.id).length - getEmployeeTravels(selectedEmployee.id, selectedGroup.id).length}
+                              </span>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+
+                      <div>
+                        <h4 className="font-semibold mb-4">Travel History</h4>
+                        <div className="space-y-3">
+                          {getEmployeeTravels(selectedEmployee.id, selectedGroup.id).map(travel => {
+                            const wage = calculateEmployeeWage(travel, selectedEmployee.id, selectedGroup.id);
+                            const travelGroup = travel.groups?.find(g => g.groupId === selectedGroup.id);
+                            const presentCount = travelGroup?.attendance.filter(a => a.present).length || 0;
+                            
                             return (
-                              <tr 
-                                key={att.employeeId} 
-                                className="border-b border-border hover:bg-secondary/50 transition-colors cursor-pointer"
-                                onClick={() => handleEmployeeClick(employee, selectedGroup.id)}
-                              >
-                                <td className="py-2 px-4">{employee.name}</td>
-                                <td className="py-2 px-4">
-                                  <span className={att.present ? 'text-green-600' : 'text-muted-foreground line-through'}>
-                                    {att.present ? 'Present' : 'Absent'}
-                                  </span>
-                                </td>
-                                <td className="py-2 px-4 text-right font-medium">
-                                  ₱{wage.toFixed(2)}
-                                </td>
-                              </tr>
+                              <Card key={travel.id} className="hover:shadow-md transition-shadow">
+                                <CardContent className="p-4">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-start gap-3 flex-1">
+                                      <div className="w-2 h-2 rounded-full bg-green-600 mt-2" />
+                                      <div className="flex-1">
+                                        <h5 className="font-medium">{travel.name}</h5>
+                                        <div className="flex flex-wrap gap-2 mt-1 text-xs text-muted-foreground">
+                                          <span>({travel.tons} tons)</span>
+                                          <span>•</span>
+                                          <span>₱{selectedGroup.wage}</span>
+                                          <span>•</span>
+                                          <span>{presentCount} present</span>
+                                          <span>•</span>
+                                          <Badge variant="outline" className="text-xs">Present</Badge>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="text-right">
+                                      <p className="font-bold text-lg">₱{wage.toFixed(2)}</p>
+                                    </div>
+                                  </div>
+                                </CardContent>
+                              </Card>
                             );
                           })}
-                        </tbody>
-                      </table>
+                        </div>
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Employee Summary Dialog */}
-      <Dialog open={employeeDialogOpen} onOpenChange={setEmployeeDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5" />
-              {selectedEmployee?.employee.name} - Wage Summary
-            </DialogTitle>
-          </DialogHeader>
-          {selectedEmployee && (
-            <div className="space-y-4">
-              <Card className="bg-primary/10 border-primary">
-                <CardContent className="pt-6">
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground mb-2">Total Earnings</p>
-                    <p className="text-3xl font-bold text-primary">
-                      ₱{getEmployeeTotalWage(selectedEmployee.employee.id, selectedEmployee.groupId).toFixed(2)}
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      {getEmployeeTravels(selectedEmployee.employee.id, selectedEmployee.groupId).length} travels completed
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-border">
-                      <th className="text-left py-3 px-4 text-sm font-semibold">Travel</th>
-                      <th className="text-center py-3 px-4 text-sm font-semibold">Tons</th>
-                      <th className="text-right py-3 px-4 text-sm font-semibold">Wage</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {getEmployeeTravels(selectedEmployee.employee.id, selectedEmployee.groupId).map(travel => {
-                      const wage = calculateEmployeeWage(travel, selectedEmployee.employee.id, selectedEmployee.groupId);
-                      return (
-                        <tr key={travel.id} className="border-b border-border hover:bg-secondary/50 transition-colors">
-                          <td className="py-3 px-4">{travel.name}</td>
-                          <td className="py-3 px-4 text-center">{travel.tons}</td>
-                          <td className="py-3 px-4 text-right font-medium">₱{wage.toFixed(2)}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                  ) : (
+                    <div className="h-full flex items-center justify-center text-muted-foreground">
+                      <p>Select an employee to view details</p>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            </TabsContent>
+
+            <TabsContent value="income" className="mt-6">
+              <div className="space-y-4 max-h-[calc(85vh-12rem)] overflow-y-auto">
+                {selectedGroup && getGroupTravels(selectedGroup.id).map(travel => {
+                  const travelGroup = travel.groups?.find(g => g.groupId === selectedGroup.id);
+                  if (!travelGroup) return null;
+
+                  return (
+                    <Card key={travel.id}>
+                      <CardHeader>
+                        <CardTitle className="text-lg">{travel.name}</CardTitle>
+                        <p className="text-sm text-muted-foreground">
+                          Tons: {travel.tons} | Present: {getEmployeePresentCount(travel, selectedGroup.id)}
+                        </p>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="overflow-x-auto">
+                          <table className="w-full">
+                            <thead>
+                              <tr className="border-b border-border">
+                                <th className="text-left py-2 px-4 text-sm font-semibold">Employee</th>
+                                <th className="text-left py-2 px-4 text-sm font-semibold">Status</th>
+                                <th className="text-right py-2 px-4 text-sm font-semibold">Wage</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {travelGroup.attendance.map(att => {
+                                const employee = employees.find(e => e.id === att.employeeId);
+                                if (!employee) return null;
+                                const wage = calculateEmployeeWage(travel, att.employeeId, selectedGroup.id);
+
+                                return (
+                                  <tr key={att.employeeId} className="border-b border-border hover:bg-secondary/50 transition-colors">
+                                    <td className="py-2 px-4">{employee.name}</td>
+                                    <td className="py-2 px-4">
+                                      <Badge variant={att.present ? "default" : "secondary"} className={att.present ? 'bg-green-600' : ''}>
+                                        {att.present ? 'Present' : 'Absent'}
+                                      </Badge>
+                                    </td>
+                                    <td className="py-2 px-4 text-right font-medium">₱{wage.toFixed(2)}</td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </TabsContent>
+          </Tabs>
         </DialogContent>
       </Dialog>
     </div>

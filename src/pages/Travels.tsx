@@ -23,6 +23,7 @@ export default function Travels() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [attendanceDialogOpen, setAttendanceDialogOpen] = useState(false);
   const [selectedTravel, setSelectedTravel] = useState<Travel | null>(null);
+  const [editingTravel, setEditingTravel] = useState<Travel | null>(null);
 
   useEffect(() => {
     fetchAll();
@@ -81,9 +82,15 @@ export default function Travels() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await addDoc(collection(db, 'travels'), formData);
-      toast.success('Travel created successfully');
+      if (editingTravel) {
+        await updateDoc(doc(db, 'travels', editingTravel.id), formData);
+        toast.success('Travel updated successfully');
+      } else {
+        await addDoc(collection(db, 'travels'), formData);
+        toast.success('Travel created successfully');
+      }
       setIsDialogOpen(false);
+      setEditingTravel(null);
       setFormData({ name: '', land: '', driver: '', plateNumber: '', destination: '', tons: 0, groups: [] });
       fetchAll();
     } catch (error) {
@@ -131,6 +138,28 @@ export default function Travels() {
     });
   };
 
+  const handleEdit = (travel: Travel) => {
+    setEditingTravel(travel);
+    setFormData({
+      name: travel.name,
+      land: travel.land,
+      driver: travel.driver,
+      plateNumber: travel.plateNumber,
+      destination: travel.destination,
+      tons: travel.tons,
+      groups: travel.groups || []
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleDialogClose = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      setEditingTravel(null);
+      setFormData({ name: '', land: '', driver: '', plateNumber: '', destination: '', tons: 0, groups: [] });
+    }
+  };
+
   return (
     <div>
       <div className="mb-8 flex justify-between items-center">
@@ -138,7 +167,7 @@ export default function Travels() {
           <h1 className="text-4xl font-bold text-foreground mb-2">Travels</h1>
           <p className="text-muted-foreground">Manage travel assignments</p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
           <DialogTrigger asChild>
             <Button className="gap-2">
               <Plus className="w-4 h-4" />
@@ -147,7 +176,7 @@ export default function Travels() {
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Create New Travel</DialogTitle>
+              <DialogTitle>{editingTravel ? 'Edit Travel' : 'Create New Travel'}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -216,7 +245,7 @@ export default function Travels() {
                   ))}
                 </div>
               </div>
-              <Button type="submit" className="w-full">Create Travel</Button>
+              <Button type="submit" className="w-full">{editingTravel ? 'Update Travel' : 'Create Travel'}</Button>
             </form>
           </DialogContent>
         </Dialog>
@@ -241,6 +270,9 @@ export default function Travels() {
                     <div className="flex justify-end gap-2">
                       <Button variant="secondary" size="sm" onClick={() => { setSelectedTravel(travel); setAttendanceDialogOpen(true); }}>
                         <Users className="w-4 h-4" />
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => handleEdit(travel)}>
+                        <Edit className="w-4 h-4" />
                       </Button>
                       <Button variant="destructive" size="sm" onClick={() => handleDelete(travel.id)}>
                         <Trash2 className="w-4 h-4" />
