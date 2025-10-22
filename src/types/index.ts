@@ -42,6 +42,7 @@ export interface Travel {
 export interface Driver {
   id: string;
   employeeId: string;
+  wage?:number;
 }
 
 export interface Debt {

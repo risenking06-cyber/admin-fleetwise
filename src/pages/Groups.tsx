@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import {
   collection,
@@ -12,18 +11,14 @@ import { db } from '@/lib/firebase';
 import { Group, Employee, Travel, Land, Plate, Destination, Driver, Debt } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Plus, Edit, Trash2, BarChart3 } from 'lucide-react';
+import { Plus, Edit, Trash2, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 import GroupDialog, { GroupFormData } from './groups/GroupDialog';
 import TravelDialog, { TravelFormData } from './groups/TravelDialog';
 import GroupTravelsDialog from './groups/GroupTravelsDialog';
 import SummaryDialog from './groups/SummaryDialog';
-import {
-  getEmployeeNames,
-  getGroupTravels,
-  calculateEmployeeWage,
-} from './groups/utils';
+import { getEmployeeNames } from './groups/utils';
 
 export default function GroupsPage(): JSX.Element {
   const [groups, setGroups] = useState<Group[]>([]);
@@ -49,6 +44,10 @@ export default function GroupsPage(): JSX.Element {
 
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
   const [selectedGroupForSummary, setSelectedGroupForSummary] = useState<Group | null>(null);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const groupsPerPage = 5;
 
   useEffect(() => {
     fetchAll();
@@ -76,13 +75,14 @@ export default function GroupsPage(): JSX.Element {
         getDocs(collection(db, 'debts')),
       ]);
 
-      // ✅ Sort groups properly by week number or natural name order
+      // ✅ Sort groups descending (e.g., Week 10 before Week 1)
       const groupsData = groupsSnap.docs.map((d) => ({ id: d.id, ...(d.data() as any) } as Group));
       const sortedGroups = groupsData.sort((a, b) => {
         const numA = parseInt(a.name.match(/\d+/)?.[0] || '0', 10);
         const numB = parseInt(b.name.match(/\d+/)?.[0] || '0', 10);
-        if (!isNaN(numA) && !isNaN(numB) && numA !== numB) return numA - numB;
-        return a.name.localeCompare(b.name, 'en', { sensitivity: 'base' });
+
+        if (!isNaN(numA) && !isNaN(numB) && numA !== numB) return numB - numA;
+        return b.name.localeCompare(a.name, 'en', { sensitivity: 'base' });
       });
 
       setGroups(sortedGroups);
@@ -99,8 +99,19 @@ export default function GroupsPage(): JSX.Element {
     }
   };
 
+  // Pagination logic
+  const indexOfLast = currentPage * groupsPerPage;
+  const indexOfFirst = indexOfLast - groupsPerPage;
+  const currentGroups = groups.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(groups.length / groupsPerPage);
 
-  // Group handlers
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  // CRUD handlers
   const openAddGroup = () => {
     setEditingGroup(null);
     setIsGroupDialogOpen(true);
@@ -145,7 +156,6 @@ export default function GroupsPage(): JSX.Element {
   const handleAddTravel = (group: Group) => {
     setSelectedGroupForTravel(group);
     setEditingTravel(null);
-    // create default attendance
     const attendance = (group.employees || []).map((empId) => ({ employeeId: empId, present: false }));
     setInitialAttendance(attendance);
     setIsTravelDialogOpen(true);
@@ -162,7 +172,9 @@ export default function GroupsPage(): JSX.Element {
     try {
       const travelData = {
         ...data,
-        groupId: editingTravel ? (travels.find((t) => t.id === editingTravel.id)?.groupId || selectedGroupForTravel?.id) : selectedGroupForTravel?.id,
+        groupId: editingTravel
+          ? (travels.find((t) => t.id === editingTravel.id)?.groupId || selectedGroupForTravel?.id)
+          : selectedGroupForTravel?.id,
       } as any;
 
       if (editingTravel) {
@@ -214,12 +226,10 @@ export default function GroupsPage(): JSX.Element {
           <p className="text-muted-foreground">Organize employees into groups</p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button className="gap-2" onClick={openAddGroup}>
-            <Plus className="w-4 h-4" />
-            Add Group
-          </Button>
-        </div>
+        <Button className="gap-2" onClick={openAddGroup}>
+          <Plus className="w-4 h-4" />
+          Add Group
+        </Button>
       </div>
 
       <Card className="p-6">
@@ -234,7 +244,7 @@ export default function GroupsPage(): JSX.Element {
               </tr>
             </thead>
             <tbody>
-              {groups.map((group) => (
+              {currentGroups.map((group) => (
                 <tr key={group.id} className="border-b border-border hover:bg-secondary/50 transition-colors">
                   <td
                     className="py-3 px-4 text-foreground cursor-pointer hover:text-primary"
@@ -243,7 +253,9 @@ export default function GroupsPage(): JSX.Element {
                     {group.name}
                   </td>
                   <td className="py-3 px-4 text-foreground">₱{group.wage}</td>
-                  <td className="py-3 px-4 text-foreground text-sm">{getEmployeeNames(group.employees || [], employees) || 'No employees'}</td>
+                  <td className="py-3 px-4 text-foreground text-sm">
+                    {getEmployeeNames(group.employees || [], employees) || 'No employees'}
+                  </td>
                   <td className="py-3 px-4">
                     <div className="flex justify-end gap-2">
                       <Button variant="secondary" size="sm" onClick={() => openEditGroup(group)}>
@@ -265,21 +277,56 @@ export default function GroupsPage(): JSX.Element {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination controls */}
+        {groups.length > groupsPerPage && (
+          <div className="flex justify-center items-center gap-4 mt-6">
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={currentPage === 1}
+              onClick={() => handlePageChange(currentPage - 1)}
+              className="flex items-center gap-1"
+            >
+              <ChevronLeft className="w-4 h-4" /> Prev
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={currentPage === totalPages}
+              onClick={() => handlePageChange(currentPage + 1)}
+              className="flex items-center gap-1"
+            >
+              Next <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
       </Card>
 
-      {/* Group Dialog */}
+      {/* Dialogs */}
       <GroupDialog
         open={isGroupDialogOpen}
-        onOpenChange={(o) => { setIsGroupDialogOpen(o); if (!o) setEditingGroup(null); }}
+        onOpenChange={(o) => {
+          setIsGroupDialogOpen(o);
+          if (!o) setEditingGroup(null);
+        }}
         employees={employees}
         editingGroup={editingGroup}
         onSubmit={handleGroupSubmit}
       />
 
-      {/* Travel Dialog */}
       <TravelDialog
         open={isTravelDialogOpen}
-        onOpenChange={(o) => { setIsTravelDialogOpen(o); if (!o) { setEditingTravel(null); setSelectedGroupForTravel(null); } }}
+        onOpenChange={(o) => {
+          setIsTravelDialogOpen(o);
+          if (!o) {
+            setEditingTravel(null);
+            setSelectedGroupForTravel(null);
+          }
+        }}
         employees={employees}
         lands={lands}
         plates={plates}
@@ -290,30 +337,37 @@ export default function GroupsPage(): JSX.Element {
         onSubmit={handleTravelSubmit}
       />
 
-      {/* Group Travels Dialog */}
       <GroupTravelsDialog
         open={isGroupTravelsOpen}
-        onOpenChange={(o) => { setIsGroupTravelsOpen(o); if (!o) setSelectedGroupForView(null); }}
+        onOpenChange={(o) => {
+          setIsGroupTravelsOpen(o);
+          if (!o) setSelectedGroupForView(null);
+        }}
         group={selectedGroupForView}
         travels={travels}
         lands={lands}
         plates={plates}
         destinations={destinations}
         employees={employees}
-        onEditTravel={(t) => { handleEditTravel(t); setIsGroupTravelsOpen(false); }}
+        onEditTravel={(t) => {
+          handleEditTravel(t);
+          setIsGroupTravelsOpen(false);
+        }}
         onDeleteTravel={handleDeleteTravel}
       />
 
-      {/* Summary Dialog */}
       <SummaryDialog
         open={isSummaryOpen}
-        onOpenChange={(o) => { setIsSummaryOpen(o); if (!o) setSelectedGroupForSummary(null); }}
+        onOpenChange={(o) => {
+          setIsSummaryOpen(o);
+          if (!o) setSelectedGroupForSummary(null);
+        }}
         group={selectedGroupForSummary}
         travels={travels}
         employees={employees}
         debts={debts}
-        plates={plates}             // ✅ added
-        destinations={destinations} // ✅ added
+        plates={plates}
+        destinations={destinations}
       />
     </div>
   );
