@@ -4,11 +4,10 @@ import {
   Users, 
   UsersRound, 
   Car, 
-  Truck, 
+  UserCog, 
   CreditCard, 
   MapPin, 
-  Hash,
-  Target,
+  MapPinned,
   FileText
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -17,12 +16,11 @@ const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
   { icon: Users, label: 'Employees', path: '/employees' },
   { icon: UsersRound, label: 'Groups', path: '/groups' },
-  { icon: Car, label: 'Travels', path: '/travels' },
-  { icon: Truck, label: 'Drivers', path: '/drivers' },
+  { icon: UserCog, label: 'Drivers', path: '/drivers' },
   { icon: CreditCard, label: 'Debts', path: '/debts' },
-  { icon: MapPin, label: 'Lands', path: '/lands' },
-  { icon: Hash, label: 'Plates', path: '/plates' },
-  { icon: Target, label: 'Destinations', path: '/destinations' },
+  { icon: MapPinned, label: 'Lands', path: '/lands' },
+  { icon: Car, label: 'Plates', path: '/plates' },
+  { icon: MapPin, label: 'Destinations', path: '/destinations' },
   { icon: FileText, label: 'Summaries', path: '/summaries' },
 ];
 

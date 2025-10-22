@@ -18,18 +18,16 @@ export interface Travel {
   driver: string; // Employee ID
   plateNumber: string;
   destination: string;
-  ticket?:string;
-  tons?: number;
-  bags?:number;
-  sugarcane_price?:number;
-  molasses?:number;
-  molasses_price?:number;
-  groups: {
-    groupId: string;
-    attendance: {
-      employeeId: string;
-      present: boolean;
-    }[];
+  ticket?: string;
+  tons: number;
+  bags?: number;
+  sugarcane_price?: number;
+  molasses?: number;
+  molasses_price?: number;
+  groupId: string;
+  attendance: {
+    employeeId: string;
+    present: boolean;
   }[];
 }
 

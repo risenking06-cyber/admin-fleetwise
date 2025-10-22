@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Travel, Group, Employee } from '@/types';
+import { Travel, Group, Employee, Debt } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,6 +13,7 @@ export default function Summaries() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [travels, setTravels] = useState<Travel[]>([]);
+  const [debts, setDebts] = useState<Debt[]>([]);
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [groupDialogOpen, setGroupDialogOpen] = useState(false);
@@ -23,53 +24,47 @@ export default function Summaries() {
 
   const fetchAll = async () => {
     try {
-      const [groupsData, employeesData, travelsData] = await Promise.all([
+      const [groupsData, employeesData, travelsData, debtsData] = await Promise.all([
         getDocs(collection(db, 'groups')),
         getDocs(collection(db, 'employees')),
         getDocs(collection(db, 'travels')),
+        getDocs(collection(db, 'debts')),
       ]);
 
       setGroups(groupsData.docs.map(doc => ({ id: doc.id, ...doc.data() } as Group)));
       setEmployees(employeesData.docs.map(doc => ({ id: doc.id, ...doc.data() } as Employee)));
       setTravels(travelsData.docs.map(doc => ({ id: doc.id, ...doc.data() } as Travel)));
+      setDebts(debtsData.docs.map(doc => ({ id: doc.id, ...doc.data() } as Debt)));
     } catch (error) {
       toast.error('Failed to fetch data');
     }
   };
 
   const getGroupTravels = (groupId: string) => {
-    return travels.filter(travel => 
-      travel.groups?.some(g => g.groupId === groupId)
-    );
+    return travels.filter(travel => travel.groupId === groupId);
   };
 
-  const getEmployeePresentCount = (travel: Travel, groupId: string) => {
-    const travelGroup = travel.groups?.find(g => g.groupId === groupId);
-    if (!travelGroup) return 0;
-    return travelGroup.attendance.filter(a => a.present).length;
+  const getEmployeePresentCount = (travel: Travel) => {
+    return travel.attendance.filter(a => a.present).length;
   };
 
-  const calculateEmployeeWage = (travel: Travel, employeeId: string, groupId: string) => {
-    const group = groups.find(g => g.id === groupId);
+  const calculateEmployeeWage = (travel: Travel, employeeId: string) => {
+    const group = groups.find(g => g.id === travel.groupId);
     if (!group) return 0;
 
-    const travelGroup = travel.groups?.find(g => g.groupId === groupId);
-    if (!travelGroup) return 0;
-
-    const attendance = travelGroup.attendance.find(a => a.employeeId === employeeId);
+    const attendance = travel.attendance.find(a => a.employeeId === employeeId);
     if (!attendance || !attendance.present) return 0;
 
-    const presentCount = getEmployeePresentCount(travel, groupId);
+    const presentCount = getEmployeePresentCount(travel);
     if (presentCount === 0) return 0;
 
-    return (group.wage * (travel.tons || 0)) / presentCount;
+    return (group.wage * travel.tons) / presentCount;
   };
 
   const getEmployeeTravels = (employeeId: string, groupId: string) => {
     return travels.filter(travel => {
-      const travelGroup = travel.groups?.find(g => g.groupId === groupId);
-      if (!travelGroup) return false;
-      const attendance = travelGroup.attendance.find(a => a.employeeId === employeeId);
+      if (travel.groupId !== groupId) return false;
+      const attendance = travel.attendance.find(a => a.employeeId === employeeId);
       return attendance?.present;
     });
   };
@@ -77,8 +72,16 @@ export default function Summaries() {
   const getEmployeeTotalWage = (employeeId: string, groupId: string) => {
     const employeeTravels = getEmployeeTravels(employeeId, groupId);
     return employeeTravels.reduce((total, travel) => {
-      return total + calculateEmployeeWage(travel, employeeId, groupId);
+      return total + calculateEmployeeWage(travel, employeeId);
     }, 0);
+  };
+
+  const getEmployeeDebts = (employeeId: string) => {
+    return debts.filter(debt => debt.employeeId === employeeId);
+  };
+
+  const getEmployeeTotalDebts = (employeeId: string) => {
+    return getEmployeeDebts(employeeId).reduce((sum, debt) => sum + debt.amount, 0);
   };
 
   const handleGroupClick = (group: Group) => {
@@ -249,7 +252,7 @@ export default function Summaries() {
                           <CardContent className="p-4 text-center">
                             <CreditCard className="w-5 h-5 text-red-600 mx-auto mb-2" />
                             <p className="text-xs text-muted-foreground mb-1">Debts</p>
-                            <p className="text-xl font-bold text-red-600">₱0.00</p>
+                            <p className="text-xl font-bold text-red-600">₱{getEmployeeTotalDebts(selectedEmployee.id).toFixed(2)}</p>
                           </CardContent>
                         </Card>
                         <Card>
@@ -270,9 +273,8 @@ export default function Summaries() {
                         <h4 className="font-semibold mb-4">Travel History</h4>
                         <div className="space-y-3">
                           {getEmployeeTravels(selectedEmployee.id, selectedGroup.id).map(travel => {
-                            const wage = calculateEmployeeWage(travel, selectedEmployee.id, selectedGroup.id);
-                            const travelGroup = travel.groups?.find(g => g.groupId === selectedGroup.id);
-                            const presentCount = travelGroup?.attendance.filter(a => a.present).length || 0;
+                            const wage = calculateEmployeeWage(travel, selectedEmployee.id);
+                            const presentCount = getEmployeePresentCount(travel);
                             
                             return (
                               <Card key={travel.id} className="hover:shadow-md transition-shadow">
@@ -316,15 +318,12 @@ export default function Summaries() {
             <TabsContent value="income" className="mt-6">
               <div className="space-y-4 max-h-[calc(85vh-12rem)] overflow-y-auto">
                 {selectedGroup && getGroupTravels(selectedGroup.id).map(travel => {
-                  const travelGroup = travel.groups?.find(g => g.groupId === selectedGroup.id);
-                  if (!travelGroup) return null;
-
                   return (
                     <Card key={travel.id}>
                       <CardHeader>
                         <CardTitle className="text-lg">{travel.name}</CardTitle>
                         <p className="text-sm text-muted-foreground">
-                          Tons: {travel.tons} | Present: {getEmployeePresentCount(travel, selectedGroup.id)}
+                          Tons: {travel.tons} | Present: {getEmployeePresentCount(travel)}
                         </p>
                       </CardHeader>
                       <CardContent>
@@ -338,10 +337,10 @@ export default function Summaries() {
                               </tr>
                             </thead>
                             <tbody>
-                              {travelGroup.attendance.map(att => {
+                              {travel.attendance.map(att => {
                                 const employee = employees.find(e => e.id === att.employeeId);
                                 if (!employee) return null;
-                                const wage = calculateEmployeeWage(travel, att.employeeId, selectedGroup.id);
+                                const wage = calculateEmployeeWage(travel, att.employeeId);
 
                                 return (
                                   <tr key={att.employeeId} className="border-b border-border hover:bg-secondary/50 transition-colors">

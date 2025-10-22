@@ -7,7 +7,7 @@ import { DashboardLayout } from "./components/layout/DashboardLayout";
 import Dashboard from "./pages/Dashboard";
 import Employees from "./pages/Employees";
 import Groups from "./pages/Groups";
-import Travels from "./pages/Travels";
+
 import Drivers from "./pages/Drivers";
 import Debts from "./pages/Debts";
 import Lands from "./pages/Lands";
@@ -28,7 +28,6 @@ const App = () => (
           <Route path="/" element={<DashboardLayout><Dashboard /></DashboardLayout>} />
           <Route path="/employees" element={<DashboardLayout><Employees /></DashboardLayout>} />
           <Route path="/groups" element={<DashboardLayout><Groups /></DashboardLayout>} />
-          <Route path="/travels" element={<DashboardLayout><Travels /></DashboardLayout>} />
           <Route path="/drivers" element={<DashboardLayout><Drivers /></DashboardLayout>} />
           <Route path="/debts" element={<DashboardLayout><Debts /></DashboardLayout>} />
           <Route path="/lands" element={<DashboardLayout><Lands /></DashboardLayout>} />
