@@ -771,51 +771,111 @@ export default function Groups() {
             </TabsContent>
 
             <TabsContent value="income" className="mt-6">
-              <div className="space-y-4 max-h-[calc(85vh-12rem)] overflow-y-auto">
-                {selectedGroupForSummary && getGroupTravels(selectedGroupForSummary.id).map(travel => {
-                  return (
-                    <Card key={travel.id}>
-                      <CardHeader>
-                        <CardTitle className="text-lg">{travel.name}</CardTitle>
-                        <p className="text-sm text-muted-foreground">
-                          Tons: {travel.tons} | Present: {getEmployeePresentCount(travel)}
-                        </p>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="overflow-x-auto">
-                          <table className="w-full">
-                            <thead>
-                              <tr className="border-b border-border">
-                                <th className="text-left py-2 px-4 text-sm font-semibold">Employee</th>
-                                <th className="text-left py-2 px-4 text-sm font-semibold">Status</th>
-                                <th className="text-right py-2 px-4 text-sm font-semibold">Wage</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {travel.attendance.map(att => {
-                                const employee = employees.find(e => e.id === att.employeeId);
-                                if (!employee) return null;
-                                const wage = calculateEmployeeWage(travel, att.employeeId);
+              <div className="space-y-6 max-h-[calc(85vh-12rem)] overflow-y-auto">
+                <div className="space-y-6">
+                  {selectedGroupForSummary && getGroupTravels(selectedGroupForSummary.id).map(travel => {
+                    const presentCount = getEmployeePresentCount(travel);
+                    const grossIncome = selectedGroupForSummary.wage * travel.tons;
+                    const totalWage = travel.attendance.reduce((sum, att) => {
+                      return sum + calculateEmployeeWage(travel, att.employeeId);
+                    }, 0);
+                    const netIncome = grossIncome - totalWage;
 
-                                return (
-                                  <tr key={att.employeeId} className="border-b border-border hover:bg-secondary/50 transition-colors">
-                                    <td className="py-2 px-4">{employee.name}</td>
-                                    <td className="py-2 px-4">
-                                      <Badge variant={att.present ? "default" : "secondary"} className={att.present ? 'bg-green-600' : ''}>
-                                        {att.present ? 'Present' : 'Absent'}
-                                      </Badge>
-                                    </td>
-                                    <td className="py-2 px-4 text-right font-medium">₱{wage.toFixed(2)}</td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
+                    return (
+                      <Card key={travel.id} className="border-2">
+                        <CardContent className="p-6">
+                          <div className="flex justify-between items-start mb-4">
+                            <div>
+                              <h3 className="text-xl font-bold mb-1">{travel.name}</h3>
+                              <p className="text-sm text-muted-foreground">Ticket No: {travel.ticket || 'N/A'}</p>
+                              <p className="text-xs text-muted-foreground mt-1">{travel.tons} tons</p>
+                            </div>
+                            <div className="text-right space-y-1">
+                              <p className="text-xs text-muted-foreground">Net Income</p>
+                              <p className="text-2xl font-bold text-blue-600">₱{netIncome.toFixed(2)}</p>
+                              <p className="text-xs text-green-600 mt-2">Income</p>
+                              <p className="text-base font-semibold text-green-600">₱{grossIncome.toFixed(2)}</p>
+                              <p className="text-xs text-red-600 mt-2">Expenses</p>
+                              <p className="text-base font-semibold text-red-600">₱{totalWage.toFixed(2)}</p>
+                            </div>
+                          </div>
+
+                          <div className="space-y-3 mt-4">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-muted-foreground">Tons: {travel.tons} × ₱{selectedGroupForSummary.wage} = <span className="text-green-600 font-medium">₱{grossIncome.toFixed(2)}</span></span>
+                            </div>
+
+                            <div className="border-t pt-3 mt-3">
+                              <p className="text-sm font-semibold text-muted-foreground mb-2">Expenses:</p>
+                              <div className="space-y-1">
+                                {travel.attendance.filter(att => att.present).map(att => {
+                                  const employee = employees.find(e => e.id === att.employeeId);
+                                  if (!employee) return null;
+                                  const wage = calculateEmployeeWage(travel, att.employeeId);
+                                  return (
+                                    <div key={att.employeeId} className="flex justify-between text-sm">
+                                      <span className="text-muted-foreground">{employee.name}</span>
+                                      <span className="font-medium">₱{wage.toFixed(2)}</span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+
+                            <div className="border-t pt-3 mt-3 space-y-2">
+                              <div className="flex justify-between text-sm font-semibold">
+                                <span>Total Wage</span>
+                                <span className="text-orange-600">₱{totalWage.toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between text-sm font-semibold">
+                                <span>Total Expenses</span>
+                                <span>₱{totalWage.toFixed(2)}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+
+                {/* Overall Summary */}
+                {selectedGroupForSummary && getGroupTravels(selectedGroupForSummary.id).length > 0 && (
+                  <Card className="border-2 border-primary bg-secondary/20">
+                    <CardContent className="p-6">
+                      <div className="space-y-3">
+                        <div className="flex justify-between text-sm">
+                          <span className="font-medium">Total Tons</span>
+                          <span className="font-bold">{getGroupTravels(selectedGroupForSummary.id).reduce((sum, t) => sum + t.tons, 0).toFixed(2)}</span>
                         </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                        <div className="flex justify-between text-sm">
+                          <span className="font-medium">Total Income</span>
+                          <span className="font-bold">₱{getGroupTravels(selectedGroupForSummary.id).reduce((sum, t) => sum + (selectedGroupForSummary.wage * t.tons), 0).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="font-medium">Total Expenses</span>
+                          <span className="font-bold text-red-600">₱{getGroupTravels(selectedGroupForSummary.id).reduce((sum, t) => {
+                            return sum + t.attendance.reduce((wageSum, att) => {
+                              return wageSum + calculateEmployeeWage(t, att.employeeId);
+                            }, 0);
+                          }, 0).toFixed(2)}</span>
+                        </div>
+                        <div className="border-t pt-3 mt-3">
+                          <div className="flex justify-between">
+                            <span className="text-lg font-bold">Overall Income</span>
+                            <span className="text-2xl font-bold text-green-600">₱{(getGroupTravels(selectedGroupForSummary.id).reduce((sum, t) => {
+                              const income = selectedGroupForSummary.wage * t.tons;
+                              const expenses = t.attendance.reduce((wageSum, att) => {
+                                return wageSum + calculateEmployeeWage(t, att.employeeId);
+                              }, 0);
+                              return sum + (income - expenses);
+                            }, 0)).toFixed(2)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </TabsContent>
           </Tabs>
