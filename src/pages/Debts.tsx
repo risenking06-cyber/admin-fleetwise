@@ -170,6 +170,7 @@ export default function Debts() {
             <div>
               <Label>Employee</Label>
               <Select
+                disabled
                 value={formData.employeeId}
                 onValueChange={(value) => setFormData({ ...formData, employeeId: value })}
               >
