@@ -868,6 +868,10 @@ export default function Groups() {
                         const destination = destinations.find(d => d.id === destinationId);
                         return destination ? destination.name : 'Unknown Destination';
                       };
+                      const getPlateNumber = (plateId: string) => {
+                        const plate = plates.find(p => p.id === plateId);
+                        return plate ? plate.name : 'Unknown Plate';
+                      };
 
                       return (
                         <Card key={travel.id} className="border-2">
@@ -877,7 +881,9 @@ export default function Groups() {
                                 <h3 className="text-xl font-bold mb-1">{travel.name}</h3>
                                 <p className="text-sm text-muted-foreground">Ticket No: {travel.ticket || 'N/A'}</p>
                                 <p className="text-xs text-muted-foreground mt-1">{travel.tons} tons</p>
-                                <p className="text-xs text-muted-foreground mt-1">{getDriverName(travel.driver)} | {getDestinationName(travel.destination)}</p>
+                                <p className="text-xs text-muted-foreground mt-1">Driver: {getDriverName(travel.driver)}</p>
+                                <p className="text-xs text-muted-foreground mt-1">Destination: {getDestinationName(travel.destination)}</p>
+                                <p className="text-xs text-muted-foreground mt-1">Plate Number: {getPlateNumber(travel.plateNumber)}</p>
                                 <p className="text-xs text-muted-foreground mt-1">Sugarcane: {travel.bags || 0} × ₱{travel.sugarcane_price || 0} ={' '}
                                   <span className="text-green-600 font-medium">₱{sugarIncome.toFixed(2)}</span>
                                 </p>
