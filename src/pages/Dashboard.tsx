@@ -77,10 +77,3 @@ function cn(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
 }
 
-// in my group page. i want to have a button after edit group that is add travel.
-// when i add travel to that group, it will automatically link to that group. for this, i think you need to change my travels interface because there will be only 1group per travel
-// also, in my group page, when i click the group, a modal will appear that shows my travels in that group, also there will be a button in each travels for crud functions of travels.
-// also,i want a summary button before the delete button in my groups page. when i click that, modal will show up like in my summaries feature where you can see the computation of their wages. i want the exact design of that like the summaries page.
-// like the summaries page, i want employee summary and income summary. the income summary is like this picture i uploaded
-// since the travel page features was moved to groups page, remove the travel page. Let the summaries page stay, i have other plan for that page.
-// also, in my employee summary, the debts of the employee should show up there. i currently saw it shows zero, you need to fix that

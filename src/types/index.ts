@@ -25,10 +25,17 @@ export interface Travel {
   molasses?: number;
   molasses_price?: number;
   groupId: string;
+  
   attendance: {
     employeeId: string;
     present: boolean;
   }[];
+
+  expenses?: {
+    id?: string;      // optional, in case you want to reference specific expense docs later
+    name: string;     // e.g., "Fuel", "Food", "Toll Fee"
+    amount: number;   // e.g., 500
+  }[]; // ✅ NEW field
 }
 
 export interface Driver {
