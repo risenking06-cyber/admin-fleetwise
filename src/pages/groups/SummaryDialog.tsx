@@ -298,6 +298,7 @@ export default function SummaryDialog({
                             <p className="text-xs text-muted-foreground mt-1">Driver: {getDriverName(travel.driver)}</p>
                             <p className="text-xs text-muted-foreground mt-1">Plate: {getPlateName(travel.plateNumber)}</p>
                             <p className="text-xs text-muted-foreground mt-1">Destination: {getDestinationName(travel.destination)}</p>
+                            <p className="text-xs text-muted-foreground mt-1">PSTC: {travel.pstc}</p>
                           </div>
 
                           <div className="text-right space-y-1">

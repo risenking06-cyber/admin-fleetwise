@@ -26,7 +26,7 @@ export interface Travel {
   molasses?: number;
   molasses_price?: number;
   groupId: string;
-  
+  pstc?:string;
   attendance: {
     employeeId: string;
     present: boolean;

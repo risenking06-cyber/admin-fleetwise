@@ -17,7 +17,8 @@ export interface TravelFormData {
   driver: string;
   plateNumber: string;
   destination: string;
-  ticket: string;
+  ticket?: string;
+  pstc?:string;
   tons: number;
   bags?: number;
   sugarcane_price?: number;
@@ -59,6 +60,7 @@ export default function TravelDialog({
     plateNumber: '',
     destination: '',
     ticket: '',
+    pstc:'',
     tons: 0,
     bags: 0,
     sugarcane_price: 0,
@@ -78,6 +80,7 @@ export default function TravelDialog({
         driver: editingTravel.driver,
         plateNumber: editingTravel.plateNumber,
         destination: editingTravel.destination,
+        pstc:editingTravel.pstc,
         ticket: editingTravel.ticket || '',
         tons: editingTravel.tons || 0,
         bags: editingTravel.bags || 0,
@@ -285,6 +288,10 @@ export default function TravelDialog({
                 value={form.molasses_price}
                 onChange={(e) => setForm({ ...form, molasses_price: parseFloat(e.target.value) || 0 })}
               />
+            </div>
+            <div>
+              <Label>PSTC</Label>
+              <Input value={form.pstc} onChange={(e) => setForm({ ...form, pstc: e.target.value })} />
             </div>
           </div>
 
