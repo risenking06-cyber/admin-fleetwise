@@ -16,18 +16,20 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [employees, groups, travels, debts] = await Promise.all([
+        const [employeesSnap, groupsSnap, travelsSnap, debtsSnap] = await Promise.all([
           getDocs(collection(db, 'employees')),
           getDocs(collection(db, 'groups')),
           getDocs(collection(db, 'travels')),
           getDocs(collection(db, 'debts')),
         ]);
 
+        const pendingDebtsCount = debtsSnap.docs.filter(d => !(d.data() as any).paid).length;
+
         setStats({
-          employees: employees.size,
-          groups: groups.size,
-          travels: travels.size,
-          debts: debts.size,
+          employees: employeesSnap.size,
+          groups: groupsSnap.size,
+          travels: travelsSnap.size,
+          debts: pendingDebtsCount,
         });
       } catch (error) {
         console.error('Error fetching stats:', error);
@@ -36,6 +38,7 @@ export default function Dashboard() {
 
     fetchStats();
   }, []);
+
 
   const statCards = [
     { icon: Users, label: 'Total Employees', value: stats.employees, color: 'text-primary' },

@@ -24,8 +24,17 @@ export default function Drivers() {
   const fetchDrivers = async () => {
     const querySnapshot = await getDocs(collection(db, 'drivers'));
     const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Driver));
-    setDrivers(data);
+
+    // ✅ Sort drivers based on the corresponding employee's name
+    const sorted = data.sort((a, b) => {
+      const empA = employees.find(e => e.id === a.employeeId)?.name || '';
+      const empB = employees.find(e => e.id === b.employeeId)?.name || '';
+      return empA.localeCompare(empB, 'en', { sensitivity: 'base' });
+    });
+
+    setDrivers(sorted);
   };
+
 
   const fetchEmployees = async () => {
     const querySnapshot = await getDocs(collection(db, 'employees'));

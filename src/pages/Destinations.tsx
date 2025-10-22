@@ -23,7 +23,8 @@ export default function Destinations() {
   const fetchDestinations = async () => {
     const querySnapshot = await getDocs(collection(db, 'destinations'));
     const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Destination));
-    setDestinations(data);
+    const sorted = data.sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
+    setDestinations(sorted);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

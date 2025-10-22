@@ -23,8 +23,13 @@ export default function Lands() {
   const fetchLands = async () => {
     const querySnapshot = await getDocs(collection(db, 'lands'));
     const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Land));
-    setLands(data);
+   
+
+    const sorted = data.sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
+    setLands(sorted);
   };
+
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

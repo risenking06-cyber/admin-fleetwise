@@ -9,6 +9,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Plus, Edit, Trash2, Search } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export default function Employees() {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -22,13 +29,12 @@ export default function Employees() {
   }, []);
 
   const fetchEmployees = async () => {
-    try {
-      const querySnapshot = await getDocs(collection(db, 'employees'));
-      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Employee));
-      setEmployees(data);
-    } catch (error) {
-      toast.error('Failed to fetch employees');
-    }
+    const querySnapshot = await getDocs(collection(db, 'employees'));
+    const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Employee));
+
+    // ✅ Sort alphabetically by name (case-insensitive)
+    const sorted = data.sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
+    setEmployees(sorted);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -101,15 +107,23 @@ export default function Employees() {
                   required
                 />
               </div>
+
               <div>
                 <Label htmlFor="type">Type</Label>
-                <Input
-                  id="type"
+                <Select
                   value={formData.type}
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                  required
-                />
+                  onValueChange={(value) => setFormData({ ...formData, type: value })}
+                >
+                  <SelectTrigger id="type">
+                    <SelectValue placeholder="Select Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="REGULAR">REGULAR</SelectItem>
+                    <SelectItem value="IRREGULAR">IRREGULAR</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
+
               <Button type="submit" className="w-full">
                 {editingEmployee ? 'Update' : 'Create'}
               </Button>
@@ -142,7 +156,10 @@ export default function Employees() {
             </thead>
             <tbody>
               {filteredEmployees.map((employee) => (
-                <tr key={employee.id} className="border-b border-border hover:bg-secondary/50 transition-colors">
+                <tr
+                  key={employee.id}
+                  className="border-b border-border hover:bg-secondary/50 transition-colors"
+                >
                   <td className="py-3 px-4 text-foreground">{employee.name}</td>
                   <td className="py-3 px-4 text-foreground">{employee.type}</td>
                   <td className="py-3 px-4">

@@ -49,6 +49,7 @@ export interface Debt {
   employeeId: string;
   amount: number;
   description: string;
+  paid:boolean;
   date: string;
 }
 

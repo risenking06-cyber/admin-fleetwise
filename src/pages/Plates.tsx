@@ -23,8 +23,12 @@ export default function Plates() {
   const fetchPlates = async () => {
     const querySnapshot = await getDocs(collection(db, 'plates'));
     const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Plate));
-    setPlates(data);
+
+    const sorted = data.sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
+    setPlates(sorted);
   };
+
+  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
