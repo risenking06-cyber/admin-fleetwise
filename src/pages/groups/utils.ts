@@ -10,6 +10,7 @@ export const getEmployeeNames = (employeeIds: string[], employees: Employee[]) =
   employeeIds
     .map((id) => employees.find((e) => e.id === id)?.name)
     .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' }))
     .join(', ');
 
 export const getGroupTravels = (groupId: string, travels: Travel[]) =>
