@@ -159,7 +159,7 @@ export default function Groups() {
       sugarcane_price: travel.sugarcane_price || 0,
       molasses: travel.molasses || 0,
       molasses_price: travel.molasses_price || 0,
-      expenses:[],
+      expenses: travel.expenses || [], // ✅ Keep existing expenses
       attendance: travel.attendance
     });
     setIsTravelDialogOpen(true);
@@ -510,6 +510,10 @@ export default function Groups() {
             <div>
               <Label>Expenses</Label>
               <div className="mt-2 space-y-2">
+                {travelFormData.expenses.length === 0 && (
+                  <p className="text-xs text-muted-foreground">No expenses added yet.</p>
+                )}
+
                 {travelFormData.expenses.map((exp, idx) => (
                   <div key={idx} className="flex items-center gap-2">
                     <Input
@@ -546,21 +550,25 @@ export default function Groups() {
                     </Button>
                   </div>
                 ))}
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() =>
-                    setTravelFormData({
-                      ...travelFormData,
-                      expenses: [...travelFormData.expenses, { name: '', amount: 0 }],
-                    })
-                  }
-                >
-                  + Add Expense
-                </Button>
+
+                <div className="pt-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() =>
+                      setTravelFormData({
+                        ...travelFormData,
+                        expenses: [...travelFormData.expenses, { name: '', amount: 0 }],
+                      })
+                    }
+                  >
+                    + Add Expense
+                  </Button>
+                </div>
               </div>
             </div>
+
 
             <div>
               <Label>Attendance</Label>
@@ -852,6 +860,15 @@ export default function Groups() {
                       // 💰 Net income
                       const netIncome = grossIncome - totalExpenses;
 
+                      const getDriverName = (driverId: string) => {
+                        const employee = employees.find(e => e.id === driverId);
+                        return employee ? employee.name : 'Unknown Driver';
+                      };
+                      const getDestinationName = (destinationId: string) => {
+                        const destination = destinations.find(d => d.id === destinationId);
+                        return destination ? destination.name : 'Unknown Destination';
+                      };
+
                       return (
                         <Card key={travel.id} className="border-2">
                           <CardContent className="p-6">
@@ -860,6 +877,16 @@ export default function Groups() {
                                 <h3 className="text-xl font-bold mb-1">{travel.name}</h3>
                                 <p className="text-sm text-muted-foreground">Ticket No: {travel.ticket || 'N/A'}</p>
                                 <p className="text-xs text-muted-foreground mt-1">{travel.tons} tons</p>
+                                <p className="text-xs text-muted-foreground mt-1">{getDriverName(travel.driver)} | {getDestinationName(travel.destination)}</p>
+                                <p className="text-xs text-muted-foreground mt-1">Sugarcane: {travel.bags || 0} × ₱{travel.sugarcane_price || 0} ={' '}
+                                  <span className="text-green-600 font-medium">₱{sugarIncome.toFixed(2)}</span>
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  <span className="text-muted-foreground">
+                                  Molasses: {travel.molasses || 0} × ₱{travel.molasses_price || 0} ={' '}
+                                  <span className="text-green-600 font-medium">₱{molassesIncome.toFixed(2)}</span>
+                                </span>
+                                </p>
                               </div>
                               <div className="text-right space-y-1">
                                 <p className="text-xs text-muted-foreground">Net Income</p>
@@ -875,7 +902,7 @@ export default function Groups() {
 
                             <div className="space-y-3 mt-4">
                               {/* Income details */}
-                              <div className="flex justify-between text-sm">
+                              {/* <div className="flex justify-between text-sm">
                                 <span className="text-muted-foreground">
                                   Sugarcane: {travel.bags || 0} × ₱{travel.sugarcane_price || 0} ={' '}
                                   <span className="text-green-600 font-medium">₱{sugarIncome.toFixed(2)}</span>
@@ -886,32 +913,13 @@ export default function Groups() {
                                   Molasses: {travel.molasses || 0} × ₱{travel.molasses_price || 0} ={' '}
                                   <span className="text-green-600 font-medium">₱{molassesIncome.toFixed(2)}</span>
                                 </span>
-                              </div>
+                              </div> */}
 
-                              {/* Employee wages */}
-                              <div className="border-t pt-3 mt-3">
-                                <p className="text-sm font-semibold text-muted-foreground mb-2">Employee Wages:</p>
-                                <div className="space-y-1">
-                                  {travel.attendance
-                                    .filter(att => att.present)
-                                    .map(att => {
-                                      const employee = employees.find(e => e.id === att.employeeId);
-                                      if (!employee) return null;
-                                      const wage = calculateEmployeeWage(travel, att.employeeId);
-                                      return (
-                                        <div key={att.employeeId} className="flex justify-between text-sm">
-                                          <span className="text-muted-foreground">{employee.name}</span>
-                                          <span className="font-medium">₱{wage.toFixed(2)}</span>
-                                        </div>
-                                      );
-                                    })}
-                                </div>
-                              </div>
 
                               {/* Travel expenses */}
                               {travel.expenses && travel.expenses.length > 0 && (
                                 <div className="border-t pt-3 mt-3">
-                                  <p className="text-sm font-semibold text-muted-foreground mb-2">Travel Expenses:</p>
+                                  <p className="text-sm font-semibold text-muted-foreground mb-2">Expenses:</p>
                                   <div className="space-y-1">
                                     {travel.expenses.map((exp, idx) => (
                                       <div key={idx} className="flex justify-between text-sm">
@@ -919,6 +927,15 @@ export default function Groups() {
                                         <span className="font-medium">₱{exp.amount.toFixed(2)}</span>
                                       </div>
                                     ))}
+                                      {/* <div className="flex justify-between text-sm">
+                                        <span className="text-muted-foreground">Total Wage:</span>
+                                        <span className="font-medium"> ₱{
+                                          travel.attendance
+                                            .filter(att => att.present)
+                                            .reduce((total, att) => total + calculateEmployeeWage(travel, att.employeeId), 0)
+                                            .toFixed(2)}
+                                        </span>
+                                      </div> */}
                                   </div>
                                 </div>
                               )}

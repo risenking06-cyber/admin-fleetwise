@@ -4,6 +4,7 @@ export interface Employee {
   type: string;
 }
 
+
 export interface Group {
   id: string;
   name: string;
