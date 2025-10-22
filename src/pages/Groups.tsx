@@ -53,6 +53,8 @@ export default function GroupsPage(): JSX.Element {
     fetchAll();
   }, []);
 
+  
+
   const fetchAll = async () => {
     try {
       const [

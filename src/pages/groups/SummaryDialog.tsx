@@ -67,20 +67,27 @@ export default function SummaryDialog({
               <div className="col-span-1 space-y-3 overflow-y-auto pr-2">
                 <h3 className="font-semibold text-sm text-muted-foreground mb-4">Employees</h3>
 
-                {group.employees.map((empId) => {
-                  const employee = employees.find((e) => e.id === empId);
-                  if (!employee) return null;
-                  const empTravels = getEmployeeTravels(empId, group.id, travels);
-                  const totalWage = getEmployeeTotalWage(empId, group.id, travels, [group]);
+                {[...group.employees]
+                .map((empId) => employees.find((e) => e.id === empId))
+                .filter((e): e is Employee => !!e)
+                .sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }))
+                .map((employee) => {
+                  const empTravels = getEmployeeTravels(employee.id, group.id, travels);
+                  const totalWage = getEmployeeTotalWage(employee.id, group.id, travels, [group]);
                   const totalTons = empTravels.reduce((s, t) => s + (t.tons || 0), 0);
                   const presentCount = empTravels.length;
                   const absentCount = groupTravels.length - presentCount;
 
                   return (
                     <Card
-                      key={empId}
-                      className={`cursor-pointer transition-all hover:shadow-md ${selectedEmployee?.id === empId ? 'border-primary border-2' : ''}`}
-                      onClick={() => { setSelectedEmployee(employee); if (onSelectEmployee) onSelectEmployee(employee); }}
+                      key={employee.id}
+                      className={`cursor-pointer transition-all hover:shadow-md ${
+                        selectedEmployee?.id === employee.id ? 'border-primary border-2' : ''
+                      }`}
+                      onClick={() => {
+                        setSelectedEmployee(employee);
+                        if (onSelectEmployee) onSelectEmployee(employee);
+                      }}
                     >
                       <CardContent className="p-4">
                         <div className="flex items-start gap-3">
@@ -123,6 +130,7 @@ export default function SummaryDialog({
                     </Card>
                   );
                 })}
+
               </div>
 
               <div className="col-span-2 overflow-y-auto">
@@ -236,53 +244,70 @@ export default function SummaryDialog({
 
           <TabsContent value="income" className="mt-6">
             <div className="space-y-6 max-h-[calc(85vh-12rem)] overflow-y-auto p-2">
-              {groupTravels.map((travel) => {
-                const sugarIncome = (travel.sugarcane_price || 0) * (travel.bags || 0);
-                const molassesIncome = (travel.molasses_price || 0) * (travel.molasses || 0);
-                const grossIncome = sugarIncome + molassesIncome;
+              {[...groupTravels]
+                .sort((a, b) => {
+                  // try to parse both travel.name as dates
+                  const tsA = Date.parse(String(a.name).trim());
+                  const tsB = Date.parse(String(b.name).trim());
+                  const isDateA = !isNaN(tsA);
+                  const isDateB = !isNaN(tsB);
 
-                const totalWage = (travel.attendance || []).reduce(
-                  (sum, att) => sum + calculateEmployeeWage(travel, att.employeeId, [group]),
-                  0
-                );
+                  // both are valid dates -> oldest -> newest
+                  if (isDateA && isDateB) {
+                    return tsA - tsB; // oldest first
+                  }
 
-                const travelExpenses = (travel.expenses || []).reduce((s, e) => s + (e.amount || 0), 0);
-                const totalExpenses = totalWage + travelExpenses;
-                const netIncome = grossIncome - totalExpenses;
+                  // only one is a date -> put dates first (if you prefer dates last, swap return values)
+                  if (isDateA && !isDateB) return -1;
+                  if (!isDateA && isDateB) return 1;
 
-                const getDriverName = (driverId: string) => {
-                  const employee = employees.find((e) => e.id === driverId);
-                  return employee ? employee.name : 'Unknown Driver';
-                };
-                const getPlateName = (id: string) => plates.find((p) => p.id === id)?.name || "Unknown Plate";
-                const getDestinationName = (id: string) => destinations.find((d) => d.id === id)?.name || "Unknown Destination";
+                  // neither are dates -> alphabetical A -> Z
+                  return a.name.localeCompare(b.name, 'en', { sensitivity: 'base' });
+                })
+                .map((travel) => {
+                  const sugarIncome = (travel.sugarcane_price || 0) * (travel.bags || 0);
+                  const molassesIncome = (travel.molasses_price || 0) * (travel.molasses || 0);
+                  const grossIncome = sugarIncome + molassesIncome;
 
+                  const totalWage = (travel.attendance || []).reduce(
+                    (sum, att) => sum + calculateEmployeeWage(travel, att.employeeId, [group]),
+                    0
+                  );
 
-                return (
-                  <Card key={travel.id} className="border-2">
-                    <CardContent className="p-6">
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <h3 className="text-xl font-bold mb-1">{travel.name}</h3>
-                          <p className="text-sm text-muted-foreground">Ticket No: {travel.ticket || 'N/A'}</p>
-                          <p className="text-xs text-muted-foreground mt-1">Weight: {travel.tons} tons</p>
-                          <p className="text-xs text-muted-foreground mt-1">Driver: {getDriverName(travel.driver)}</p>
-                          <p className="text-xs text-muted-foreground mt-1">Plate: {getPlateName(travel.plateNumber)}</p>
-                          <p className="text-xs text-muted-foreground mt-1">Destination: {getDestinationName(travel.destination)}</p>
-                          
-                        </div>
+                  const travelExpenses = (travel.expenses || []).reduce((s, e) => s + (e.amount || 0), 0);
+                  const totalExpenses = totalWage + travelExpenses;
+                  const netIncome = grossIncome - totalExpenses;
 
-                        <div className="text-right space-y-1">
-                          <p className="text-xs text-muted-foreground">Net Income</p>
-                          <p className="text-2xl font-bold text-blue-600">₱{netIncome.toFixed(2)}</p>
+                  const getDriverName = (driverId: string) => {
+                    const employee = employees.find((e) => e.id === driverId);
+                    return employee ? employee.name : 'Unknown Driver';
+                  };
+                  const getPlateName = (id: string) => plates.find((p) => p.id === id)?.name || "Unknown Plate";
+                  const getDestinationName = (id: string) => destinations.find((d) => d.id === id)?.name || "Unknown Destination";
 
-                          <p className="text-xs text-green-600 mt-2">Income</p>
-                          <p className="text-base font-semibold text-green-600">₱{grossIncome.toFixed(2)}</p>
+                  return (
+                    <Card key={travel.id} className="border-2">
+                      <CardContent className="p-6">
+                        <div className="flex justify-between items-start mb-4">
+                          <div>
+                            <h3 className="text-xl font-bold mb-1">{travel.name}</h3>
+                            <p className="text-sm text-muted-foreground">Ticket No: {travel.ticket || 'N/A'}</p>
+                            <p className="text-xs text-muted-foreground mt-1">Weight: {travel.tons} tons</p>
+                            <p className="text-xs text-muted-foreground mt-1">Sugarcane Income: {travel.bags} * {travel.sugarcane_price} = <span className="text-green-600">{travel.bags * travel.sugarcane_price}</span></p>
+                            <p className="text-xs text-muted-foreground mt-1">Molasses Income: {travel.molasses} * {travel.molasses_price} = <span className="text-green-600">{travel.molasses * travel.molasses_price}</span></p>
+                            <p className="text-xs text-muted-foreground mt-1">Driver: {getDriverName(travel.driver)}</p>
+                            <p className="text-xs text-muted-foreground mt-1">Plate: {getPlateName(travel.plateNumber)}</p>
+                            <p className="text-xs text-muted-foreground mt-1">Destination: {getDestinationName(travel.destination)}</p>
+                          </div>
 
-                          <p className="text-xs text-red-600 mt-2">Expenses</p>
-                          <p className="text-base font-semibold text-red-600">₱{totalExpenses.toFixed(2)}</p>
-                        </div>
-
+                          <div className="text-right space-y-1">
+                            <p className="text-xs text-muted-foreground">Net Income</p>
+                            <p className="text-2xl font-bold text-blue-600">₱{netIncome.toFixed(2)}</p>
+                            <p className="text-xs text-green-600 mt-2">Income</p>
+                            <p className="text-base font-semibold text-green-600">₱{grossIncome.toFixed(2)}</p>
+                            <p className="text-xs text-red-600 mt-2">Expenses</p>
+                            <p className="text-base font-semibold text-red-600">₱{totalExpenses.toFixed(2)}</p>
+                          </div>
                         </div>
 
                         <div className="space-y-3 mt-4">
@@ -315,10 +340,11 @@ export default function SummaryDialog({
                             </div>
                           </div>
                         </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+
 
               {groupTravels.length > 0 && (
                 <Card className="border-2 border-primary bg-secondary/20">
@@ -364,7 +390,7 @@ export default function SummaryDialog({
 
                       <div className="border-t pt-3 mt-3">
                         <div className="flex justify-between">
-                          <span className="text-lg font-bold">Overall Net Income</span>
+                          <span className="text-lg font-bold">Net Income</span>
                           <span className="text-2xl font-bold text-green-600">
                             ₱
                             {groupTravels
