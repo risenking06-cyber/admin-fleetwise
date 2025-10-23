@@ -2,21 +2,41 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { DashboardLayout } from "./components/layout/DashboardLayout";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import Employees from "./pages/Employees";
 import Groups from "./pages/Groups";
-
 import Drivers from "./pages/Drivers";
 import Debts from "./pages/Debts";
 import Lands from "./pages/Lands";
 import Plates from "./pages/Plates";
 import Destinations from "./pages/Destinations";
 import Summaries from "./pages/Summaries";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+function AuthRedirect({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (user) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -24,19 +44,62 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<DashboardLayout><Dashboard /></DashboardLayout>} />
-          <Route path="/employees" element={<DashboardLayout><Employees /></DashboardLayout>} />
-          <Route path="/groups" element={<DashboardLayout><Groups /></DashboardLayout>} />
-          <Route path="/drivers" element={<DashboardLayout><Drivers /></DashboardLayout>} />
-          <Route path="/debts" element={<DashboardLayout><Debts /></DashboardLayout>} />
-          <Route path="/lands" element={<DashboardLayout><Lands /></DashboardLayout>} />
-          <Route path="/plates" element={<DashboardLayout><Plates /></DashboardLayout>} />
-          <Route path="/destinations" element={<DashboardLayout><Destinations /></DashboardLayout>} />
-          <Route path="/summaries" element={<DashboardLayout><Summaries /></DashboardLayout>} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/auth" element={
+              <AuthRedirect>
+                <Auth />
+              </AuthRedirect>
+            } />
+            <Route path="/" element={
+              <ProtectedRoute>
+                <DashboardLayout><Dashboard /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/employees" element={
+              <ProtectedRoute>
+                <DashboardLayout><Employees /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/groups" element={
+              <ProtectedRoute>
+                <DashboardLayout><Groups /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/drivers" element={
+              <ProtectedRoute>
+                <DashboardLayout><Drivers /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/debts" element={
+              <ProtectedRoute>
+                <DashboardLayout><Debts /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/lands" element={
+              <ProtectedRoute>
+                <DashboardLayout><Lands /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/plates" element={
+              <ProtectedRoute>
+                <DashboardLayout><Plates /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/destinations" element={
+              <ProtectedRoute>
+                <DashboardLayout><Destinations /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/summaries" element={
+              <ProtectedRoute>
+                <DashboardLayout><Summaries /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

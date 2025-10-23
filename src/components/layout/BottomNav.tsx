@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Users,
@@ -9,8 +9,11 @@ import {
   Car,
   MapPin,
   FileText,
+  LogOut,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 const menuItems = [
   { icon: LayoutDashboard, path: '/' },
@@ -26,6 +29,18 @@ const menuItems = [
 
 export const BottomNav = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success('Logged out successfully');
+      navigate('/auth');
+    } catch (error) {
+      toast.error('Failed to logout');
+    }
+  };
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 w-full bg-card border-t border-border shadow-lg z-50">
@@ -49,6 +64,12 @@ export const BottomNav = () => {
             </Link>
           );
         })}
+        <button
+          onClick={handleLogout}
+          className="flex flex-col items-center justify-center transition-colors duration-200 text-destructive hover:text-destructive/80"
+        >
+          <LogOut className="w-6 h-6" />
+        </button>
       </div>
     </nav>
   );
