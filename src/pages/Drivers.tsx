@@ -61,6 +61,8 @@ export default function Drivers() {
     setDrivers(data);
   };
 
+  
+
   const fetchEmployees = async () => {
     const querySnapshot = await getDocs(collection(db, 'employees'));
     const data = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Employee));
@@ -188,6 +190,12 @@ export default function Drivers() {
   const currentTravels = driverTravels.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(driverTravels.length / travelsPerPage);
 
+  const sortedDrivers = [...drivers].sort((a, b) => {
+    const nameA = getEmployeeName(a.employeeId).toLowerCase();
+    const nameB = getEmployeeName(b.employeeId).toLowerCase();
+    return nameA.localeCompare(nameB);
+  });
+  
   return (
     <div>
       {/* Header */}
@@ -279,7 +287,7 @@ export default function Drivers() {
             </tr>
           </thead>
           <tbody>
-            {drivers.map((driver) => (
+            {sortedDrivers.map((driver) => (
               <tr
                 key={driver.id}
                 className="border-b border-border hover:bg-secondary/50 transition-colors"
