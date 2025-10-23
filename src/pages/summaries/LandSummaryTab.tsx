@@ -51,7 +51,7 @@ export default function LandSummaryTab({
   const [selectedPlate, setSelectedPlate] = useState("all");
   const [selectedDriver, setSelectedDriver] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 5;
 
   const reportRef = useRef<HTMLDivElement>(null);
 

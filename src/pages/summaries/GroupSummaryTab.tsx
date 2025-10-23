@@ -40,7 +40,7 @@ export default function GroupSummaryTab({
 }: GroupSummaryTabProps) {
   const reportRef = useRef<HTMLDivElement>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 5;
 
   const filteredTravels =
     selectedGroupId === "all"
