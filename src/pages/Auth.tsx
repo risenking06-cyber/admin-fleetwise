@@ -103,9 +103,9 @@ export default function Auth() {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-1">
               <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              {/* <TabsTrigger value="signup">Sign Up</TabsTrigger> */}
             </TabsList>
 
             <TabsContent value="login">
@@ -147,7 +147,7 @@ export default function Auth() {
               </form>
             </TabsContent>
 
-            <TabsContent value="signup">
+            {/* <TabsContent value="signup">
               <form onSubmit={handleSignup} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>
@@ -197,7 +197,7 @@ export default function Auth() {
                   )}
                 </Button>
               </form>
-            </TabsContent>
+            </TabsContent> */}
           </Tabs>
         </CardContent>
       </Card>
