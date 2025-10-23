@@ -105,12 +105,12 @@ export default function SummaryDialog({
                               </div>
                               <div className="flex items-center gap-1">
                                 <TrendingUp className="w-3 h-3 text-muted-foreground" />
-                                <span>{totalTons.toFixed(2)}</span>
+                                <span>{totalTons.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                               </div>
 
                               <div className="col-span-2 flex items-center gap-1">
                                 <Wallet className="w-3 h-3 text-muted-foreground" />
-                                <span className="font-medium">₱{totalWage.toFixed(2)}</span>
+                                <span className="font-medium">₱{totalWage.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                               </div>
 
                               <div className="col-span-2 flex items-center gap-2 text-xs">
@@ -160,7 +160,7 @@ export default function SummaryDialog({
                           <TrendingUp className="w-5 h-5 text-green-600 mx-auto mb-2" />
                           <p className="text-xs text-muted-foreground mb-1">Tons</p>
                           <p className="text-xl font-bold">
-                            {getEmployeeTravels(selectedEmployee.id, group.id, travels).reduce((sum, t) => sum + (t.tons || 0), 0).toFixed(2)}
+                            {getEmployeeTravels(selectedEmployee.id, group.id, travels).reduce((sum, t) => sum + (t.tons || 0), 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </p>
                         </CardContent>
                       </Card>
@@ -170,7 +170,7 @@ export default function SummaryDialog({
                           <Wallet className="w-5 h-5 text-yellow-600 mx-auto mb-2" />
                           <p className="text-xs text-muted-foreground mb-1">Wage</p>
                           <p className="text-xl font-bold text-yellow-600">
-                            ₱{getEmployeeTotalWage(selectedEmployee.id, group.id, travels, [group]).toFixed(2)}
+                            ₱{getEmployeeTotalWage(selectedEmployee.id, group.id, travels, [group]).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </p>
                         </CardContent>
                       </Card>
@@ -179,7 +179,7 @@ export default function SummaryDialog({
                         <CardContent className="p-4 text-center">
                           <CreditCard className="w-5 h-5 text-red-600 mx-auto mb-2" />
                           <p className="text-xs text-muted-foreground mb-1">Debts</p>
-                          <p className="text-xl font-bold text-red-600">₱{getEmployeeTotalDebts(selectedEmployee.id, debts).toFixed(2)}</p>
+                          <p className="text-xl font-bold text-red-600">₱{getEmployeeTotalDebts(selectedEmployee.id, debts).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                         </CardContent>
                       </Card>
 
@@ -223,7 +223,7 @@ export default function SummaryDialog({
                                     </div>
                                   </div>
                                   <div className="text-right">
-                                    <p className="font-bold text-lg">₱{wage.toFixed(2)}</p>
+                                    <p className="font-bold text-lg">₱{wage.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                                   </div>
                                 </div>
                               </CardContent>
@@ -303,11 +303,11 @@ export default function SummaryDialog({
 
                           <div className="text-right space-y-1">
                             <p className="text-xs text-muted-foreground">Net Income</p>
-                            <p className="text-2xl font-bold text-blue-600">₱{netIncome.toFixed(2)}</p>
+                            <p className="text-2xl font-bold text-blue-600">₱{netIncome.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                             <p className="text-xs text-green-600 mt-2">Income</p>
-                            <p className="text-base font-semibold text-green-600">₱{grossIncome.toFixed(2)}</p>
+                            <p className="text-base font-semibold text-green-600">₱{grossIncome.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                             <p className="text-xs text-red-600 mt-2">Expenses</p>
-                            <p className="text-base font-semibold text-red-600">₱{totalExpenses.toFixed(2)}</p>
+                            <p className="text-base font-semibold text-red-600">₱{totalExpenses.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                           </div>
                         </div>
 
@@ -319,7 +319,7 @@ export default function SummaryDialog({
                                 {travel.expenses.map((exp, idx) => (
                                   <div key={idx} className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">{exp.name}</span>
-                                    <span className="font-medium">₱{exp.amount.toFixed(2)}</span>
+                                    <span className="font-medium">₱{exp.amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                   </div>
                                 ))}
                               </div>
@@ -329,15 +329,15 @@ export default function SummaryDialog({
                           <div className="border-t pt-3 mt-3 space-y-2">
                             <div className="flex justify-between text-sm font-semibold">
                               <span>Total Wages</span>
-                              <span className="text-orange-600">₱{totalWage.toFixed(2)}</span>
+                              <span className="text-orange-600">₱{totalWage.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </div>
                             <div className="flex justify-between text-sm font-semibold">
                               <span>Other Expenses</span>
-                              <span className="text-red-600">₱{travelExpenses.toFixed(2)}</span>
+                              <span className="text-red-600">₱{travelExpenses.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </div>
                             <div className="flex justify-between text-sm font-semibold">
                               <span>Total Expenses</span>
-                              <span className="text-red-700">₱{totalExpenses.toFixed(2)}</span>
+                              <span className="text-red-700">₱{totalExpenses.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </div>
                           </div>
                         </div>
@@ -354,7 +354,7 @@ export default function SummaryDialog({
                       <div className="flex justify-between text-sm">
                         <span className="font-medium">Total Tons</span>
                         <span className="font-bold">
-                          {groupTravels.reduce((sum, t) => sum + (t.tons || 0), 0).toFixed(2)}
+                          {groupTravels.reduce((sum, t) => sum + (t.tons || 0), 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                       </div>
 
@@ -368,7 +368,7 @@ export default function SummaryDialog({
                               const molassesIncome = (t.molasses_price || 0) * (t.molasses || 0);
                               return sum + sugarIncome + molassesIncome;
                             }, 0)
-                            .toFixed(2)}
+                            .toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                       </div>
 
@@ -385,7 +385,7 @@ export default function SummaryDialog({
                               const expSum = (t.expenses || []).reduce((expSum, e) => expSum + (e.amount || 0), 0);
                               return sum + wageSum + expSum;
                             }, 0)
-                            .toFixed(2)}
+                            .toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                       </div>
 
@@ -406,7 +406,7 @@ export default function SummaryDialog({
                                 const expSum = (t.expenses || []).reduce((eSum, e) => eSum + (e.amount || 0), 0);
                                 return sum + (gross - wageSum - expSum);
                               }, 0)
-                              .toFixed(2)}
+                              .toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         </div>
                       </div>

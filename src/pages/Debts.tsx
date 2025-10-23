@@ -120,7 +120,7 @@ export default function Debts() {
                 >
                   <td className="py-3 px-4 text-foreground font-medium">{employee.name}</td>
                   <td className="py-3 px-4 text-destructive font-semibold">
-                    ₱{getEmployeeTotalDebt(employee.id).toFixed(2)}
+                    ₱{getEmployeeTotalDebt(employee.id).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </td>
                   <td className="py-3 px-4 text-right space-x-2">
                     <Button
@@ -230,7 +230,7 @@ export default function Debts() {
 
               <div className="space-y-4">
                 <p className="text-lg font-semibold text-destructive">
-                  Total: ₱{getEmployeeTotalDebt(selectedEmployee.id).toFixed(2)}
+                  Total: ₱{getEmployeeTotalDebt(selectedEmployee.id).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
 
                 <table className="w-full border-t">

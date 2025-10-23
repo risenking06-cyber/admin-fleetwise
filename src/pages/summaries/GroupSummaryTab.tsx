@@ -110,11 +110,11 @@ export default function GroupSummaryTab({
       </div>
       <div style="background:#fef9c3;padding:16px;border-radius:10px;text-align:center">
         <div style="color:#64748b;font-size:13px;">Total Tons</div>
-        <div style="color:#ca8a04;font-size:22px;font-weight:700;">${totalTons.toFixed(2)}</div>
+        <div style="color:#ca8a04;font-size:22px;font-weight:700;">${totalTons.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
       </div>
       <div style="background:#ecfdf5;padding:16px;border-radius:10px;text-align:center">
         <div style="color:#64748b;font-size:13px;">Net Income</div>
-        <div style="color:#047857;font-size:22px;font-weight:700;">PHP ${netIncome.toFixed(2)}</div>
+        <div style="color:#047857;font-size:22px;font-weight:700;">₱${netIncome.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
       </div>
     `;
     a4Container.appendChild(summary);
@@ -153,18 +153,10 @@ export default function GroupSummaryTab({
                   t.driver,
                   employees
                 )}</td>
-                <td style="padding:8px 10px;text-align:right;border-bottom:1px solid #e5e7eb;">${t.tons.toFixed(
-                  2
-                )}</td>
-                <td style="padding:8px 10px;text-align:right;color:#1d4ed8;border-bottom:1px solid #e5e7eb;">PHP ${income.toFixed(
-                  2
-                )}</td>
-                <td style="padding:8px 10px;text-align:right;color:#dc2626;border-bottom:1px solid #e5e7eb;">PHP ${expenses.toFixed(
-                  2
-                )}</td>
-                <td style="padding:8px 10px;text-align:right;color:#047857;border-bottom:1px solid #e5e7eb;">PHP ${net.toFixed(
-                  2
-                )}</td>
+                <td style="padding:8px 10px;text-align:right;border-bottom:1px solid #e5e7eb;">${t.tons.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td style="padding:8px 10px;text-align:right;color:#1d4ed8;border-bottom:1px solid #e5e7eb;">₱${income.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td style="padding:8px 10px;text-align:right;color:#dc2626;border-bottom:1px solid #e5e7eb;">₱${expenses.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td style="padding:8px 10px;text-align:right;color:#047857;border-bottom:1px solid #e5e7eb;">₱${net.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
               </tr>`;
           })
           .join("")}
@@ -230,25 +222,25 @@ export default function GroupSummaryTab({
           <Card className="p-6 bg-yellow-50">
             <p className="text-sm text-muted-foreground mb-2">Total Tons</p>
             <p className="text-2xl font-bold text-yellow-600">
-              {totalTons.toFixed(2)}
+              {totalTons.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
           </Card>
           <Card className="p-6 bg-blue-50">
             <p className="text-sm text-muted-foreground mb-2">Total Income</p>
             <p className="text-2xl font-bold text-blue-600">
-              PHP {totalIncome.toFixed(2)}
+              ₱{totalIncome.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
           </Card>
           <Card className="p-6 bg-red-50">
             <p className="text-sm text-muted-foreground mb-2">Total Expenses</p>
             <p className="text-2xl font-bold text-red-600">
-              PHP {totalExpenses.toFixed(2)}
+              ₱{totalExpenses.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
           </Card>
           <Card className="p-6 bg-green-50">
             <p className="text-sm text-muted-foreground mb-2">Net Income</p>
             <p className="text-2xl font-bold text-green-600">
-              PHP {netIncome.toFixed(2)}
+              ₱{netIncome.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
           </Card>
         </div>
@@ -288,15 +280,15 @@ export default function GroupSummaryTab({
                         {getDestinationName(t.destination, destinations)}
                       </td>
                       <td className="py-3 px-4">{getDriverName(t.driver, employees)}</td>
-                      <td className="py-3 px-4 text-right">{t.tons.toFixed(2)}</td>
+                      <td className="py-3 px-4 text-right">{t.tons.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                       <td className="py-3 px-4 text-right text-blue-600 font-semibold">
-                        PHP {income.toFixed(2)}
+                        ₱{income.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
                       <td className="py-3 px-4 text-right text-red-600 font-semibold">
-                        PHP {expenses.toFixed(2)}
+                        ₱{expenses.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
                       <td className="py-3 px-4 text-right text-green-600 font-semibold">
-                        PHP {net.toFixed(2)}
+                        ₱{net.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
                     </tr>
                   );

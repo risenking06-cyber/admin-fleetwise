@@ -115,7 +115,7 @@ export default function EmployeeSummaryTab({
     const pageHeight = doc.internal.pageSize.getHeight();
 
     const formatCurrency = (value: number) =>
-      `PHP ${value.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+      `₱${value.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
 
     // 🎨 HEADER
     doc.setFillColor(25, 118, 210);
@@ -241,11 +241,11 @@ export default function EmployeeSummaryTab({
     </div>
     <div style="background:#ecfdf5;padding:16px;border-radius:10px;text-align:center">
       <div style="color:#64748b;font-size:13px;">Total Wage</div>
-      <div style="color:#047857;font-size:22px;font-weight:700;">PHP ${totalWage.toFixed(2)}</div>
+      <div style="color:#047857;font-size:22px;font-weight:700;">₱${totalWage.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
     </div>
     <div style="background:#fefce8;padding:16px;border-radius:10px;text-align:center">
       <div style="color:#64748b;font-size:13px;">Total Debts (Unpaid)</div>
-      <div style="color:#ca8a04;font-size:22px;font-weight:700;">PHP ${totalDebts.toFixed(2)}</div>
+      <div style="color:#ca8a04;font-size:22px;font-weight:700;">₱${totalDebts.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
     </div>
   `;
   a4Container.appendChild(summary);
@@ -273,8 +273,8 @@ export default function EmployeeSummaryTab({
           <td style="padding:8px 10px;border-bottom:1px solid #e5e7eb;">${employee.name}</td>
           <td style="padding:8px 10px;text-align:right;border-bottom:1px solid #e5e7eb;">${daysWorked}</td>
           <td style="padding:8px 10px;text-align:right;color:#dc2626;border-bottom:1px solid #e5e7eb;">${absentDays}</td>
-          <td style="padding:8px 10px;text-align:right;color:#047857;border-bottom:1px solid #e5e7eb;">PHP ${wage.toFixed(2)}</td>
-          <td style="padding:8px 10px;text-align:right;color:#ca8a04;border-bottom:1px solid #e5e7eb;">PHP ${debt.toFixed(2)}</td>
+          <td style="padding:8px 10px;text-align:right;color:#047857;border-bottom:1px solid #e5e7eb;">₱${wage.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td style="padding:8px 10px;text-align:right;color:#ca8a04;border-bottom:1px solid #e5e7eb;">₱${debt.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
         </tr>`
         )
         .join("")}
@@ -348,7 +348,7 @@ export default function EmployeeSummaryTab({
             <CardContent className="p-0">
               <p className="text-sm text-muted-foreground mb-2">Total Wage</p>
               <p className="text-3xl font-bold text-green-600">
-                PHP {totalWage.toFixed(2)}
+                ₱{totalWage.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </CardContent>
           </Card>
@@ -357,7 +357,7 @@ export default function EmployeeSummaryTab({
             <CardContent className="p-0">
               <p className="text-sm text-muted-foreground mb-2">Total Debts (Unpaid)</p>
               <p className="text-3xl font-bold text-yellow-600">
-                PHP {totalDebts.toFixed(2)}
+                ₱{totalDebts.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </CardContent>
           </Card>
@@ -388,10 +388,10 @@ export default function EmployeeSummaryTab({
                         {absentDays}
                       </td>
                       <td className="py-3 px-4 text-right text-green-600 font-semibold">
-                        PHP {wage.toFixed(2)}
+                        ₱{wage.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
                       <td className="py-3 px-4 text-right text-yellow-600 font-semibold">
-                        PHP {debt.toFixed(2)}
+                        ₱{debt.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
                     </tr>
                   )
