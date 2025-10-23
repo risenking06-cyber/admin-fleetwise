@@ -15,6 +15,7 @@ import Lands from "./pages/Lands";
 import Plates from "./pages/Plates";
 import Destinations from "./pages/Destinations";
 import Summaries from "./pages/Summaries";
+import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -94,6 +95,11 @@ const App = () => (
             <Route path="/summaries" element={
               <ProtectedRoute>
                 <DashboardLayout><Summaries /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/settings" element={
+              <ProtectedRoute>
+                <DashboardLayout><Settings /></DashboardLayout>
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

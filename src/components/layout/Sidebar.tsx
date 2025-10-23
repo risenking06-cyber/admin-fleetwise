@@ -9,6 +9,7 @@ import {
   MapPin, 
   MapPinned,
   FileText,
+  Settings,
   LogOut
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -26,6 +27,7 @@ const menuItems = [
   { icon: Car, label: 'Plates', path: '/plates' },
   { icon: MapPin, label: 'Destinations', path: '/destinations' },
   { icon: FileText, label: 'Summaries', path: '/summaries' },
+  { icon: Settings, label: 'Settings', path: '/settings' },
 ];
 
 export const Sidebar = () => {

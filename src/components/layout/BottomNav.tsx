@@ -10,6 +10,7 @@ import {
   MapPin,
   FileText,
   LogOut,
+  Settings,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -25,6 +26,7 @@ const menuItems = [
   { icon: Car, path: '/plates' },
   { icon: MapPin, path: '/destinations' },
   { icon: FileText, path: '/summaries' },
+  { icon: Settings, path: '/settings' },
 ];
 
 export const BottomNav = () => {
