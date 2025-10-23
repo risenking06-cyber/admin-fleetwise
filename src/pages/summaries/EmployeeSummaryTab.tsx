@@ -167,7 +167,7 @@ export default function EmployeeSummaryTab({
 
     autoTable(doc, {
       startY: y,
-      head: [["Employee", "Days Worked", "Absent Days", "Total Wage", "Unpaid Debt"]],
+      head: [["Employee", "Present", "Absent", "Total Wage", "Unpaid Debt"]],
       body: tableData,
       theme: "grid",
       headStyles: {
@@ -263,8 +263,8 @@ export default function EmployeeSummaryTab({
     <thead style="background:#1e3a8a;color:white;font-size:13px;">
       <tr>
         <th style="padding:10px;text-align:left;">Employee</th>
-        <th style="padding:10px;text-align:right;">Days Worked</th>
-        <th style="padding:10px;text-align:right;">Absent Days</th>
+        <th style="padding:10px;text-align:right;">Present</th>
+        <th style="padding:10px;text-align:right;">Absent</th>
         <th style="padding:10px;text-align:right;">Total Wage</th>
         <th style="padding:10px;text-align:right;">Unpaid Debt</th>
       </tr>
@@ -379,8 +379,8 @@ export default function EmployeeSummaryTab({
               <thead className="bg-muted/50">
                 <tr>
                   <th className="text-left py-3 px-4 text-sm font-semibold">Employee</th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold">Days Worked</th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold">Absent Days</th>
+                  <th className="text-right py-3 px-4 text-sm font-semibold">Present</th>
+                  <th className="text-right py-3 px-4 text-sm font-semibold">Absent</th>
                   <th className="text-right py-3 px-4 text-sm font-semibold">Total Wage</th>
                   <th className="text-right py-3 px-4 text-sm font-semibold">Unpaid Debt</th>
                 </tr>
