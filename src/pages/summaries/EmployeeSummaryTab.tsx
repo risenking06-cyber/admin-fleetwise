@@ -72,7 +72,11 @@ export default function EmployeeSummaryTab({
   }, [selectedGroupId, employees, groups]);
 
   const employeeStats = useMemo(() => {
-    return filteredEmployees.map((emp) => {
+  const sortedEmployees = [...filteredEmployees].sort((a, b) =>
+    a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
+  );
+  return sortedEmployees.map((emp) => {
+
       const empTravels = getEmployeeTravels(
         emp.id,
         selectedGroupId === "all" ? null : selectedGroupId,
