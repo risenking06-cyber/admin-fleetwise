@@ -315,13 +315,19 @@ export default function EmployeeSummaryTab({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Groups</SelectItem>
-            {groups.map((group) => (
-              <SelectItem key={group.id} value={group.id}>
-                {group.name}
-              </SelectItem>
-            ))}
+            {groups
+              .slice()
+              .sort((a, b) =>
+                b.name.localeCompare(a.name, undefined, { numeric: true, sensitivity: 'base' })
+              )
+              .map((group) => (
+                <SelectItem key={group.id} value={group.id}>
+                  {group.name}
+                </SelectItem>
+              ))}
           </SelectContent>
         </Select>
+
 
         <div className="flex gap-2">
           <Button

@@ -7,6 +7,7 @@ import {
   Land,
   Plate,
   Destination,
+  Driver,
 } from "@/types";
 import { Card } from "@/components/ui/card";
 import {
@@ -33,6 +34,7 @@ interface LandSummaryTabProps {
   lands: Land[];
   plates: Plate[];
   destinations: Destination[];
+  drivers:Driver[];
 }
 
 export default function LandSummaryTab({
@@ -42,6 +44,7 @@ export default function LandSummaryTab({
   lands,
   plates,
   destinations,
+  drivers,
 }: LandSummaryTabProps) {
   const [selectedLand, setSelectedLand] = useState("all");
   const [selectedDestination, setSelectedDestination] = useState("all");
@@ -209,52 +212,84 @@ export default function LandSummaryTab({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Lands</SelectItem>
-              {lands.map((land) => (
-                <SelectItem key={land.id} value={land.id}>
-                  {land.name}
-                </SelectItem>
-              ))}
+              {lands
+                .slice()
+                .sort((a, b) =>
+                  a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" })
+                )
+                .map((land) => (
+                  <SelectItem key={land.id} value={land.id}>
+                    {land.name}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
+
           <Select value={selectedDestination} onValueChange={setSelectedDestination}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Destination" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Destinations</SelectItem>
-              {destinations.map((d) => (
-                <SelectItem key={d.id} value={d.id}>
-                  {d.name}
-                </SelectItem>
-              ))}
+              {destinations
+                .slice()
+                .sort((a, b) =>
+                  a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" })
+                )
+                .map((d) => (
+                  <SelectItem key={d.id} value={d.id}>
+                    {d.name}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
+
           <Select value={selectedPlate} onValueChange={setSelectedPlate}>
             <SelectTrigger className="w-[150px]">
               <SelectValue placeholder="Plate" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Plates</SelectItem>
-              {plates.map((p) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.name}
-                </SelectItem>
-              ))}
+              {plates
+                .slice()
+                .sort((a, b) =>
+                  a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" })
+                )
+                .map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.name}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
+
           <Select value={selectedDriver} onValueChange={setSelectedDriver}>
             <SelectTrigger className="w-[150px]">
               <SelectValue placeholder="Driver" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Drivers</SelectItem>
-              {employees.map((e) => (
-                <SelectItem key={e.id} value={e.id}>
-                  {e.name}
-                </SelectItem>
-              ))}
+              {drivers
+                .slice()
+                .map((d) => {
+                  const emp = employees.find((e) => e.id === d.employeeId);
+                  return emp
+                    ? { ...emp, driverId: d.id }
+                    : null;
+                })
+                .filter(Boolean)
+                .sort((a, b) =>
+                  a!.name.localeCompare(b!.name, undefined, { numeric: true, sensitivity: "base" })
+                )
+                .map((emp: any) => (
+                  <SelectItem key={emp.driverId} value={emp.id}>
+                    {emp.name}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
+
+
         </div>
 
         <Button
