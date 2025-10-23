@@ -47,11 +47,19 @@ export const Sidebar = () => {
 
   return (
     <aside className="w-64 bg-card border-r border-border flex flex-col">
-      <div className="p-6 border-b border-border">
-        <h1 className="text-2xl font-bold text-primary">Admin Panel</h1>
-        <p className="text-sm text-muted-foreground mt-1">Logistics Management</p>
+      {/* Full-width Logo Header */}
+      <div className="border-b border-border flex flex-col items-center justify-center p-4">
+        <img 
+          src="jfarm-logo.png" 
+          alt="JFarm Logo" 
+          className="w-28 h-28 object-contain mb-2"
+        />
+        <h1 className="text-lg font-semibold text-primary text-center text-[#00522A] leading-tight">
+          Sugarcane Management System
+        </h1>
       </div>
       
+      {/* Navigation Menu */}
       <nav className="flex-1 p-4 space-y-1">
         {menuItems.map((item) => {
           const Icon = item.icon;
@@ -75,6 +83,7 @@ export const Sidebar = () => {
         })}
       </nav>
 
+      {/* Logout Button */}
       <div className="p-4 border-t border-border">
         <Button
           onClick={handleLogout}
