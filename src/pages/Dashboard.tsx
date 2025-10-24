@@ -1,43 +1,21 @@
-import { useEffect, useState } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { useMemo } from 'react';
+import { useData } from '@/contexts/DataContext';
 import { Card } from '@/components/ui/card';
 import { Users, UsersRound, Car, CreditCard } from 'lucide-react';
+import { StatsLoadingState } from '@/components/LoadingState';
 
-// TEST GIT
 export default function Dashboard() {
-  const [stats, setStats] = useState({
-    employees: 0,
-    groups: 0,
-    travels: 0,
-    debts: 0,
-  });
+  const { employees, groups, travels, debts, loading } = useData();
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const [employeesSnap, groupsSnap, travelsSnap, debtsSnap] = await Promise.all([
-          getDocs(collection(db, 'employees')),
-          getDocs(collection(db, 'groups')),
-          getDocs(collection(db, 'travels')),
-          getDocs(collection(db, 'debts')),
-        ]);
-
-        const pendingDebtsCount = debtsSnap.docs.filter(d => !(d.data() as any).paid).length;
-
-        setStats({
-          employees: employeesSnap.size,
-          groups: groupsSnap.size,
-          travels: travelsSnap.size,
-          debts: pendingDebtsCount,
-        });
-      } catch (error) {
-        console.error('Error fetching stats:', error);
-      }
+  const stats = useMemo(() => {
+    const pendingDebtsCount = debts.filter(d => !d.paid).length;
+    return {
+      employees: employees.length,
+      groups: groups.length,
+      travels: travels.length,
+      debts: pendingDebtsCount,
     };
-
-    fetchStats();
-  }, []);
+  }, [employees, groups, travels, debts]);
 
 
   const statCards = [
@@ -47,8 +25,20 @@ export default function Dashboard() {
     { icon: CreditCard, label: 'Pending Debts', value: stats.debts, color: 'text-destructive' },
   ];
 
+  if (loading) {
+    return (
+      <div className="animate-in fade-in duration-300">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-foreground mb-2">Dashboard Overview</h1>
+          <p className="text-muted-foreground">Welcome to your logistics management system</p>
+        </div>
+        <StatsLoadingState />
+      </div>
+    );
+  }
+
   return (
-    <div>
+    <div className="animate-in fade-in duration-500">
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-foreground mb-2">Dashboard Overview</h1>
         <p className="text-muted-foreground">Welcome to your logistics management system</p>

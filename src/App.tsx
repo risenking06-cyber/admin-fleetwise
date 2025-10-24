@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { DashboardLayout } from "./components/layout/DashboardLayout";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { DataProvider } from "@/contexts/DataContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import Employees from "./pages/Employees";
@@ -19,7 +20,15 @@ import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      gcTime: 1000 * 60 * 10, // 10 minutes
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function AuthRedirect({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -46,7 +55,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
+          <DataProvider>
+            <Routes>
             <Route path="/auth" element={
               <AuthRedirect>
                 <Auth />
@@ -105,6 +115,7 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </DataProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

@@ -1,67 +1,19 @@
-import { useEffect, useState } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { Travel, Group, Employee, Debt, Land, Plate, Destination, Driver } from '@/types';
+import { useState } from 'react';
+import { useData } from '@/contexts/DataContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { FileText } from 'lucide-react';
 import { toast } from 'sonner';
+import { SummaryLoadingState } from '@/components/LoadingState';
 import EmployeeSummaryTab from './summaries/EmployeeSummaryTab';
 import GroupSummaryTab from './summaries/GroupSummaryTab';
 import LandSummaryTab from './summaries/LandSummaryTab';
 
 export default function Summaries() {
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [employees, setEmployees] = useState<Employee[]>([]);
-  const [travels, setTravels] = useState<Travel[]>([]);
-  const [debts, setDebts] = useState<Debt[]>([]);
-  const [lands, setLands] = useState<Land[]>([]);
-  const [plates, setPlates] = useState<Plate[]>([]);
-  const [destinations, setDestinations] = useState<Destination[]>([]);
-  const [drivers, setDrivers] = useState<Driver[]>([]);
+  const { groups, employees, travels, debts, lands, plates, destinations, drivers, loading } = useData();
   
   const [currentTab, setCurrentTab] = useState('employees');
   const [selectedGroupId, setSelectedGroupId] = useState('all');
-
-  useEffect(() => {
-    fetchAll();
-  }, []);
-
-  const fetchAll = async () => {
-    try {
-      const [
-        groupsData,
-        employeesData,
-        travelsData,
-        debtsData,
-        landsData,
-        platesData,
-        destinationsData,
-        driversData,
-      ] = await Promise.all([
-        getDocs(collection(db, 'groups')),
-        getDocs(collection(db, 'employees')),
-        getDocs(collection(db, 'travels')),
-        getDocs(collection(db, 'debts')),
-        getDocs(collection(db, 'lands')),
-        getDocs(collection(db, 'plates')),
-        getDocs(collection(db, 'destinations')),
-        getDocs(collection(db, 'drivers')),
-      ]);
-
-      setGroups(groupsData.docs.map(doc => ({ id: doc.id, ...doc.data() } as Group)));
-      setEmployees(employeesData.docs.map(doc => ({ id: doc.id, ...doc.data() } as Employee)));
-      setTravels(travelsData.docs.map(doc => ({ id: doc.id, ...doc.data() } as Travel)));
-      setDebts(debtsData.docs.map(doc => ({ id: doc.id, ...doc.data() } as Debt)));
-      setLands(landsData.docs.map(doc => ({ id: doc.id, ...doc.data() } as Land)));
-      setPlates(platesData.docs.map(doc => ({ id: doc.id, ...doc.data() } as Plate)));
-      setDestinations(destinationsData.docs.map(doc => ({ id: doc.id, ...doc.data() } as Destination)));
-      setDrivers(driversData.docs.map(doc => ({ id: doc.id, ...doc.data() } as Driver)));
-    } catch (error) {
-      console.error('Failed to fetch data:', error);
-      toast.error('Failed to fetch data');
-    }
-  };
 
   const handleGenerateReport = () => {
     toast.info('Generating analysis report...');
@@ -77,8 +29,20 @@ export default function Summaries() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="animate-in fade-in duration-300">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-foreground mb-2">Global Summary</h1>
+          <p className="text-muted-foreground">Loading summary data...</p>
+        </div>
+        <SummaryLoadingState />
+      </div>
+    );
+  }
+
   return (
-    <div>
+    <div className="animate-in fade-in duration-500">
       <div className="mb-8 flex justify-between items-center">
         <div>
           <h1 className="text-4xl font-bold text-foreground mb-2">Global Summary</h1>

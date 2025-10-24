@@ -1,18 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import {
-  collection,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  doc,
-  getDocs,
-} from 'firebase/firestore';
+import React, { useState } from 'react';
+import { addDoc, updateDoc, deleteDoc, doc, collection } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Group, Employee, Travel, Land, Plate, Destination, Driver, Debt } from '@/types';
+import { useData } from '@/contexts/DataContext';
+import { Group, Travel } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Plus, Edit, Trash2, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { TableLoadingState } from '@/components/LoadingState';
 
 import GroupDialog, { GroupFormData } from './groups/GroupDialog';
 import TravelDialog, { TravelFormData } from './groups/TravelDialog';
@@ -21,14 +16,7 @@ import SummaryDialog from './groups/SummaryDialog';
 import { getEmployeeNames } from './groups/utils';
 
 export default function GroupsPage(): JSX.Element {
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [employees, setEmployees] = useState<Employee[]>([]);
-  const [travels, setTravels] = useState<Travel[]>([]);
-  const [lands, setLands] = useState<Land[]>([]);
-  const [plates, setPlates] = useState<Plate[]>([]);
-  const [destinations, setDestinations] = useState<Destination[]>([]);
-  const [drivers, setDrivers] = useState<Driver[]>([]);
-  const [debts, setDebts] = useState<Debt[]>([]);
+  const { groups, employees, travels, lands, plates, destinations, drivers, debts, loading, refetch } = useData();
 
   // Dialog state
   const [isGroupDialogOpen, setIsGroupDialogOpen] = useState(false);
@@ -48,58 +36,6 @@ export default function GroupsPage(): JSX.Element {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const groupsPerPage = 5;
-
-  useEffect(() => {
-    fetchAll();
-  }, []);
-
-
-
-  const fetchAll = async () => {
-    try {
-      const [
-        groupsSnap,
-        employeesSnap,
-        travelsSnap,
-        landsSnap,
-        platesSnap,
-        destinationsSnap,
-        driversSnap,
-        debtsSnap,
-      ] = await Promise.all([
-        getDocs(collection(db, 'groups')),
-        getDocs(collection(db, 'employees')),
-        getDocs(collection(db, 'travels')),
-        getDocs(collection(db, 'lands')),
-        getDocs(collection(db, 'plates')),
-        getDocs(collection(db, 'destinations')),
-        getDocs(collection(db, 'drivers')),
-        getDocs(collection(db, 'debts')),
-      ]);
-
-      // ✅ Sort groups descending (e.g., Week 10 before Week 1)
-      const groupsData = groupsSnap.docs.map((d) => ({ id: d.id, ...(d.data() as any) } as Group));
-      const sortedGroups = groupsData.sort((a, b) => {
-        const numA = parseInt(a.name.match(/\d+/)?.[0] || '0', 10);
-        const numB = parseInt(b.name.match(/\d+/)?.[0] || '0', 10);
-
-        if (!isNaN(numA) && !isNaN(numB) && numA !== numB) return numB - numA;
-        return b.name.localeCompare(a.name, 'en', { sensitivity: 'base' });
-      });
-
-      setGroups(sortedGroups);
-      setEmployees(employeesSnap.docs.map((d) => ({ id: d.id, ...(d.data() as any) } as Employee)));
-      setTravels(travelsSnap.docs.map((d) => ({ id: d.id, ...(d.data() as any) } as Travel)));
-      setLands(landsSnap.docs.map((d) => ({ id: d.id, ...(d.data() as any) } as Land)));
-      setPlates(platesSnap.docs.map((d) => ({ id: d.id, ...(d.data() as any) } as Plate)));
-      setDestinations(destinationsSnap.docs.map((d) => ({ id: d.id, ...(d.data() as any) } as Destination)));
-      setDrivers(driversSnap.docs.map((d) => ({ id: d.id, ...(d.data() as any) } as Driver)));
-      setDebts(debtsSnap.docs.map((d) => ({ id: d.id, ...(d.data() as any) } as Debt)));
-    } catch (err) {
-      console.error('Failed to fetch data', err);
-      toast.error('Failed to load data');
-    }
-  };
 
   // Pagination logic
   const indexOfLast = currentPage * groupsPerPage;
@@ -135,7 +71,7 @@ export default function GroupsPage(): JSX.Element {
       }
       setIsGroupDialogOpen(false);
       setEditingGroup(null);
-      await fetchAll();
+      await refetch();
     } catch (err) {
       console.error(err);
       toast.error('Operation failed');
@@ -147,7 +83,7 @@ export default function GroupsPage(): JSX.Element {
     try {
       await deleteDoc(doc(db, 'groups', id));
       toast.success('Group deleted successfully');
-      await fetchAll();
+      await refetch();
     } catch (err) {
       console.error(err);
       toast.error('Failed to delete group');
@@ -190,7 +126,7 @@ export default function GroupsPage(): JSX.Element {
       setIsTravelDialogOpen(false);
       setEditingTravel(null);
       setSelectedGroupForTravel(null);
-      await fetchAll();
+      await refetch();
     } catch (err) {
       console.error(err);
       toast.error('Operation failed');
@@ -202,7 +138,7 @@ export default function GroupsPage(): JSX.Element {
     try {
       await deleteDoc(doc(db, 'travels', id));
       toast.success('Travel deleted successfully');
-      await fetchAll();
+      await refetch();
     } catch (err) {
       console.error(err);
       toast.error('Failed to delete travel');
@@ -220,8 +156,20 @@ export default function GroupsPage(): JSX.Element {
     setIsSummaryOpen(true);
   };
 
+  if (loading) {
+    return (
+      <div className="animate-in fade-in duration-300">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-foreground mb-2">Groups</h1>
+          <p className="text-muted-foreground">Loading groups data...</p>
+        </div>
+        <TableLoadingState />
+      </div>
+    );
+  }
+
   return (
-    <div>
+    <div className="animate-in fade-in duration-500">
       <div className="mb-8 flex justify-between items-center">
         <div>
           <h1 className="text-4xl font-bold text-foreground mb-2">Groups</h1>
