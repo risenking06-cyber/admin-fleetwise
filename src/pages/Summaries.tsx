@@ -15,10 +15,10 @@ export default function Summaries() {
   const [currentTab, setCurrentTab] = useState('employees');
   const [selectedGroupId, setSelectedGroupId] = useState('all');
 
-  const handleGenerateReport = () => {
-    toast.info('Generating analysis report...');
-    // TODO: Implement report generation logic
-  };
+  // const handleGenerateReport = () => {
+  //   toast.info('Generating analysis report...');
+  //   // TODO: Implement report generation logic
+  // };
 
   const getViewLabel = () => {
     switch (currentTab) {
@@ -48,13 +48,13 @@ export default function Summaries() {
           <h1 className="text-4xl font-bold text-foreground mb-2">Global Summary</h1>
           <p className="text-muted-foreground">{getViewLabel()}</p>
         </div>
-        <Button
+        {/* <Button
           onClick={handleGenerateReport}
           className="gap-2 bg-blue-600 hover:bg-blue-700"
         >
           <FileText className="w-4 h-4" />
           Generate Analysis Report
-        </Button>
+        </Button> */}
       </div>
 
       <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">

@@ -90,7 +90,7 @@ export default function Dashboard() {
       </div>
     );
   }
-  console.log("test 2");
+
   const statCards = [
     { icon: Users, label: 'Total Employees', value: stats.employees, color: 'text-primary' },
     { icon: UsersRound, label: 'Active Groups', value: stats.groups, color: 'text-accent' },
@@ -103,7 +103,7 @@ export default function Dashboard() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-foreground mb-2">Dashboard Overview</h1>
-        <p className="text-muted-foreground">Welcome to your logistics management system</p>
+        <p className="text-muted-foreground">Welcome to your sugarcane management system</p>
       </div>
 
       {/* 🟩 Row 1 – Stat Cards */}
@@ -131,36 +131,53 @@ export default function Dashboard() {
         })}
       </div>
 
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+
+        <Card className="p-4 md:p-6 hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary">
+          <div className="flex items-center justify-between">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs md:text-sm text-muted-foreground mb-1 truncate">
+                Total Income
+              </p>
+              <p className="text-2xl md:text-3xl font-bold text-foreground"> ₱{stats.totalIncome.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
+            </div>
+          </div>
+        </Card>
+        <Card className="p-4 md:p-6 hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary">
+          <div className="flex items-center justify-between">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs md:text-sm text-muted-foreground mb-1 truncate">
+                Total Expenses
+              </p>
+              <p className="text-2xl md:text-3xl font-bold text-foreground"> ₱{stats.totalExpenses.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
+            </div>
+          </div>
+        </Card>
+        <Card className="p-4 md:p-6 hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary">
+          <div className="flex items-center justify-between">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs md:text-sm text-muted-foreground mb-1 truncate">
+                Net Income
+              </p>
+              <p className="text-2xl md:text-3xl font-bold text-foreground"> ₱{stats.netIncome.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
+            </div>
+          </div>
+        </Card>
+        <Card className="p-4 md:p-6 hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary">
+          <div className="flex items-center justify-between">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs md:text-sm text-muted-foreground mb-1 truncate">
+                Total Debts
+              </p>
+              <p className="text-2xl md:text-3xl font-bold text-foreground"> ₱{stats.totalDebts.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+
       {/* 🟦 Row 2 – Financial Summary + Pie Chart */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Financial Summary */}
-        <div className="space-y-4">
-          <Card className="p-6 bg-green-50">
-            <p className="text-sm text-muted-foreground mb-1">Total Income</p>
-            <p className="text-3xl font-bold text-green-600">
-              ₱{stats.totalIncome.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
-            </p>
-          </Card>
-          <Card className="p-6 bg-red-50">
-            <p className="text-sm text-muted-foreground mb-1">Total Expenses</p>
-            <p className="text-3xl font-bold text-red-600">
-              ₱{stats.totalExpenses.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
-            </p>
-          </Card>
-          <Card className="p-6 bg-blue-50">
-            <p className="text-sm text-muted-foreground mb-1">Net Income</p>
-            <p className="text-3xl font-bold text-blue-600">
-              ₱{stats.netIncome.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
-            </p>
-          </Card>
-          <Card className="p-6 bg-neutral-50">
-            <p className="text-sm text-muted-foreground mb-1">Total Debts</p>
-            <p className="text-3xl font-bold text-neutral-800">
-              ₱{stats.totalDebts.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
-            </p>
-          </Card>
-        </div>
-
         {/* Pie Chart */}
         <Card className="p-6">
           <h2 className="text-lg font-semibold mb-4">Financial Breakdown</h2>
@@ -170,19 +187,22 @@ export default function Dashboard() {
             netIncome={stats.netIncome}
           />
         </Card>
-      </div>
-
-      {/* 🟨 Row 3 – Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="p-6">
           <h2 className="text-lg font-semibold mb-4">Employee Income vs Total Debts</h2>
           {/* Pass drivers as prop so chart computes properly */}
           <EmployeeIncomeDebtChart drivers={drivers} />
         </Card>
+      </div>
+
+      {/* 🟨 Row 3 – Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="p-6">
+          Soon
+        </Card>
 
         <Card className="p-6">
           <h2 className="text-lg font-semibold mb-4">Soon</h2>
-          
+
         </Card>
       </div>
     </div>
