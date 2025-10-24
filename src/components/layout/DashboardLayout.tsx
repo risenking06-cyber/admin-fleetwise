@@ -16,8 +16,10 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
       {/* Main content area */}
       <main className="flex-1 overflow-auto relative pb-20 md:pb-0">
-        <div className="p-6 md:p-8">
-          {children}
+        <div className="p-4 md:p-6 lg:p-8">
+          <div className="max-w-7xl mx-auto">
+            {children}
+          </div>
         </div>
       </main>
 

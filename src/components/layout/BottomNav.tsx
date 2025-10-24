@@ -45,9 +45,9 @@ export const BottomNav = () => {
   };
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 w-full bg-card border-t border-border shadow-lg z-50">
-      <div className="flex justify-around items-center py-3">
-        {menuItems.map((item) => {
+    <nav className="md:hidden fixed bottom-0 left-0 w-full bg-card/95 backdrop-blur-lg border-t border-border shadow-xl z-50">
+      <div className="flex justify-around items-center py-2 px-1 safe-area-inset-bottom">
+        {menuItems.slice(0, 5).map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
 
@@ -56,21 +56,28 @@ export const BottomNav = () => {
               key={item.path}
               to={item.path}
               className={cn(
-                'flex flex-col items-center justify-center transition-colors duration-200',
+                'flex flex-col items-center justify-center transition-all duration-200 p-2 rounded-xl min-w-[56px]',
                 isActive
                   ? 'text-primary'
-                  : 'text-muted-foreground hover:text-primary'
+                  : 'text-muted-foreground active:bg-muted'
               )}
             >
-              <Icon className="w-6 h-6" />
+              <div className={cn(
+                'p-1.5 rounded-lg transition-colors',
+                isActive ? 'bg-primary/10' : ''
+              )}>
+                <Icon className="w-5 h-5" />
+              </div>
             </Link>
           );
         })}
         <button
           onClick={handleLogout}
-          className="flex flex-col items-center justify-center transition-colors duration-200 text-destructive hover:text-destructive/80"
+          className="flex flex-col items-center justify-center transition-all duration-200 p-2 rounded-xl text-destructive active:bg-destructive/10 min-w-[56px]"
         >
-          <LogOut className="w-6 h-6" />
+          <div className="p-1.5 rounded-lg hover:bg-destructive/20 transition-colors">
+            <LogOut className="w-5 h-5" />
+          </div>
         </button>
       </div>
     </nav>

@@ -182,43 +182,45 @@ export default function GroupsPage(): JSX.Element {
         </Button>
       </div>
 
-      <Card className="p-6">
+      <Card className="overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border">
-                <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Group Name</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Wage</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Employees</th>
-                <th className="text-right py-3 px-4 text-sm font-semibold text-foreground">Actions</th>
+          <table className="w-full min-w-[640px]">
+            <thead className="bg-muted/50 border-b border-border">
+              <tr>
+                <th className="text-left py-3 px-3 md:px-4 text-xs md:text-sm font-semibold text-foreground whitespace-nowrap">Group Name</th>
+                <th className="text-left py-3 px-3 md:px-4 text-xs md:text-sm font-semibold text-foreground whitespace-nowrap">Wage</th>
+                <th className="text-left py-3 px-3 md:px-4 text-xs md:text-sm font-semibold text-foreground hidden md:table-cell">Employees</th>
+                <th className="text-right py-3 px-3 md:px-4 text-xs md:text-sm font-semibold text-foreground whitespace-nowrap">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-border">
               {currentGroups.map((group) => (
-                <tr key={group.id} className="border-b border-border hover:bg-secondary/50 transition-colors">
+                <tr key={group.id} className="hover:bg-muted/30 transition-colors">
                   <td
-                    className="py-3 px-4 text-foreground cursor-pointer hover:text-primary"
+                    className="py-3 px-3 md:px-4 text-foreground cursor-pointer hover:text-primary font-medium text-sm md:text-base"
                     onClick={() => handleViewGroupTravels(group)}
                   >
                     {group.name}
                   </td>
-                  <td className="py-3 px-4 text-foreground">₱{group.wage}</td>
-                  <td className="py-3 px-4 text-foreground text-sm">
-                    {getEmployeeNames(group.employees || [], employees) || 'No employees'}
+                  <td className="py-3 px-3 md:px-4 text-foreground font-semibold text-sm md:text-base whitespace-nowrap">₱{group.wage.toLocaleString()}</td>
+                  <td className="py-3 px-3 md:px-4 text-foreground text-xs md:text-sm hidden md:table-cell">
+                    <div className="max-w-xs truncate">
+                      {getEmployeeNames(group.employees || [], employees) || 'No employees'}
+                    </div>
                   </td>
-                  <td className="py-3 px-4">
-                    <div className="flex justify-end gap-2">
-                      <Button variant="secondary" size="sm" onClick={() => openEditGroup(group)}>
-                        <Edit className="w-4 h-4" />
+                  <td className="py-3 px-3 md:px-4">
+                    <div className="flex justify-end gap-1 md:gap-2 flex-wrap">
+                      <Button variant="secondary" size="sm" onClick={() => openEditGroup(group)} className="h-8 w-8 md:h-9 md:w-9 p-0">
+                        <Edit className="w-3 h-3 md:w-4 md:h-4" />
                       </Button>
-                      <Button variant="secondary" size="sm" onClick={() => handleAddTravel(group)}>
-                        <Plus className="w-4 h-4" />
+                      <Button variant="secondary" size="sm" onClick={() => handleAddTravel(group)} className="h-8 w-8 md:h-9 md:w-9 p-0">
+                        <Plus className="w-3 h-3 md:w-4 md:h-4" />
                       </Button>
-                      <Button variant="secondary" size="sm" onClick={() => handleViewSummary(group)}>
-                        <BarChart3 className="w-4 h-4" />
+                      <Button variant="secondary" size="sm" onClick={() => handleViewSummary(group)} className="h-8 w-8 md:h-9 md:w-9 p-0">
+                        <BarChart3 className="w-3 h-3 md:w-4 md:h-4" />
                       </Button>
-                      <Button variant="destructive" size="sm" onClick={() => handleDeleteGroup(group.id)}>
-                        <Trash2 className="w-4 h-4" />
+                      <Button variant="destructive" size="sm" onClick={() => handleDeleteGroup(group.id)} className="h-8 w-8 md:h-9 md:w-9 p-0">
+                        <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
                       </Button>
                     </div>
                   </td>
@@ -230,27 +232,29 @@ export default function GroupsPage(): JSX.Element {
 
         {/* Pagination controls */}
         {groups.length > groupsPerPage && (
-          <div className="flex justify-center items-center gap-4 mt-6">
+          <div className="flex justify-center items-center gap-2 md:gap-4 mt-4 md:mt-6 p-4">
             <Button
               variant="secondary"
               size="sm"
               disabled={currentPage === 1}
               onClick={() => handlePageChange(currentPage - 1)}
-              className="flex items-center gap-1"
+              className="flex items-center gap-1 text-xs md:text-sm"
             >
-              <ChevronLeft className="w-4 h-4" /> Prev
+              <ChevronLeft className="w-3 h-3 md:w-4 md:h-4" /> 
+              <span className="hidden sm:inline">Prev</span>
             </Button>
-            <span className="text-sm text-muted-foreground">
-              Page {currentPage} of {totalPages}
+            <span className="text-xs md:text-sm text-muted-foreground whitespace-nowrap">
+              {currentPage} / {totalPages}
             </span>
             <Button
               variant="secondary"
               size="sm"
               disabled={currentPage === totalPages}
               onClick={() => handlePageChange(currentPage + 1)}
-              className="flex items-center gap-1"
+              className="flex items-center gap-1 text-xs md:text-sm"
             >
-              Next <ChevronRight className="w-4 h-4" />
+              <span className="hidden sm:inline">Next</span>
+              <ChevronRight className="w-3 h-3 md:w-4 md:h-4" />
             </Button>
           </div>
         )}
