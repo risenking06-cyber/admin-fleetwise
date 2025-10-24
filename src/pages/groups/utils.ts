@@ -1,5 +1,5 @@
 
-import { Travel, Group, Employee, Debt } from '@/types';
+import { Travel, Group, Employee, Debt, Destination } from '@/types';
 
 /**
  * Utility helpers extracted from the original file.
@@ -55,3 +55,9 @@ export const getEmployeeTotalDebts = (employeeId: string, debts: Debt[]) => {
     .filter((d) => d.employeeId === employeeId && !d.paid)
     .reduce((sum, d) => sum + (d.amount || 0), 0);
 };
+
+interface ChartPoint {
+  date: string; // e.g. "October 22, 2025"
+  [destinationName: string]: number | string;
+}
+
