@@ -45,7 +45,7 @@ app.whenReady().then(() => {
   });
 });
 
-app.on('window-all-closed', () => {
+app.on('window-all-closed', () => { 
   if (process.platform !== 'darwin') {
     app.quit();
   }
@@ -57,6 +57,11 @@ app.on('window-all-closed', () => {
 // ----------------------
 autoUpdater.on('update-available', () => {
   mainWindow.webContents.send('update_available');
+});
+
+ipcMain.on('download_update', () => {
+  console.log("Checking for updates...");
+  autoUpdater.checkForUpdates();
 });
 
 autoUpdater.on('update-downloaded', () => {
