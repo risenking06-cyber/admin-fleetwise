@@ -1,11 +1,12 @@
-const { app, BrowserWindow,ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const isDev = process.env.NODE_ENV === 'development';
-const isDev2 = process.env.VITE_DEV_SERVER_URL;
-const { autoUpdater } = require("electron-updater"); // ✅ this is required
+const { autoUpdater } = require("electron-updater");
+
+let mainWindow; // ✅ Global reference
 
 function createWindow() {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1800,
     height: 1200,
     minWidth: 800,
@@ -18,9 +19,6 @@ function createWindow() {
     icon: path.join(__dirname, '../dist/jfarm-logo.png'),
   });
 
-  console.log(isDev);
-  console.log(__dirname + '../dist/jfarm-logo.png');
-  // Load the app
   if (isDev) {
     mainWindow.loadURL('http://localhost:5173');
     mainWindow.webContents.openDevTools();
@@ -28,46 +26,53 @@ function createWindow() {
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
   }
 
-  // Handle window close
   mainWindow.on('closed', () => {
-    app.quit();
+    mainWindow = null;
   });
 }
 
-// App lifecycle
+// 🔹 Only enable autoUpdater in production
 app.whenReady().then(() => {
   createWindow();
 
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
-    }
-  });
-});
-
-app.on('window-all-closed', () => { 
-  if (process.platform !== 'darwin') {
-    app.quit();
+  if (!isDev) {
+    autoUpdater.autoDownload = false; // ✅ manual control
+    autoUpdater.checkForUpdates();    // ✅ check immediately
   }
 });
 
-
-// ----------------------
-// Auto Updater Events
-// ----------------------
+// 🔹 Events from Electron Updater
 autoUpdater.on('update-available', () => {
-  mainWindow.webContents.send('update_available');
+  console.log("Update available");
+  mainWindow?.webContents.send('update_available');
 });
 
-ipcMain.on('download_update', () => {
-  console.log("Checking for updates...");
-  autoUpdater.checkForUpdates();
+autoUpdater.on('update-not-available', () => {
+  console.log("No update available");
+});
+
+autoUpdater.on('error', (err) => {
+  console.error("Updater Error:", err);
+  mainWindow?.webContents.send('update_error', err.message || 'Unknown error');
+});
+
+autoUpdater.on('download-progress', (progressInfo) => {
+  console.log(`Downloaded ${progressInfo.percent}%`);
+  mainWindow?.webContents.send('download_progress', progressInfo.percent);
 });
 
 autoUpdater.on('update-downloaded', () => {
-  mainWindow.webContents.send('update_downloaded');
+  console.log("Update downloaded");
+  mainWindow?.webContents.send('update_downloaded');
+});
+
+// 🔹 Renderer Requests
+ipcMain.on('download_update', () => {
+  console.log("Downloading update...");
+  autoUpdater.downloadUpdate(); // ✅ correct function
 });
 
 ipcMain.on('restart_app', () => {
+  console.log("Restarting app to install update...");
   autoUpdater.quitAndInstall();
 });
