@@ -76,3 +76,9 @@ ipcMain.on('restart_app', () => {
   console.log("Restarting app to install update...");
   autoUpdater.quitAndInstall();
 });
+
+autoUpdater.on('download-progress', (progressInfo) => {
+  const percent = Math.floor(progressInfo.percent);
+  console.log(`Download progress: ${percent}%`);
+  mainWindow?.webContents.send('download_progress', percent);
+});

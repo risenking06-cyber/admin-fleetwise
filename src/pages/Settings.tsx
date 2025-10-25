@@ -31,6 +31,8 @@ export default function Settings() {
   const currentVersion = import.meta.env.VITE_APP_VERSION || "1.0.0";
 
   // 🔹 Listen to Electron autoUpdater events
+  const [downloadProgress, setDownloadProgress] = useState(0); // <-- ADD THIS near your state declarations
+
   useEffect(() => {
     if (!window.electron?.ipcRenderer) return;
 
@@ -39,20 +41,28 @@ export default function Settings() {
     ipcRenderer.on("update_available", () => {
       setUpdateAvailable(true);
       setUpdateDownloaded(false);
+      setDownloadProgress(0); // ⬅ Reset progress
       toast.info("🔄 Update available. Downloading...");
+    });
+
+    ipcRenderer.on("download_progress", (_event, percent) => {
+      setDownloadProgress(percent);
     });
 
     ipcRenderer.on("update_downloaded", () => {
       setUpdateDownloaded(true);
       setUpdateAvailable(false);
+      setDownloadProgress(100); // ⬅ Ensure full progress
       toast.success("✅ Update downloaded! Ready to install.");
     });
 
     return () => {
       ipcRenderer.removeAllListeners("update_available");
+      ipcRenderer.removeAllListeners("download_progress");
       ipcRenderer.removeAllListeners("update_downloaded");
     };
   }, []);
+
 
   const handleRestartApp = () => {
     window.electron?.ipcRenderer?.send("restart_app");
@@ -275,6 +285,17 @@ export default function Settings() {
                   Download Update
                 </Button>
               )}
+            </div>
+          )}
+          {downloadProgress > 0 && downloadProgress < 100 && (
+            <div className="text-center mt-4">
+              <p className="text-sm text-primary font-medium mb-2">Downloading update: {downloadProgress}%</p>
+              <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
+                <div
+                  className="h-3 bg-primary transition-all"
+                  style={{ width: `${downloadProgress}%` }}
+                ></div>
+              </div>
             </div>
           )}
         </Card>
