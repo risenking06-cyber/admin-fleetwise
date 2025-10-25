@@ -1,6 +1,7 @@
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
 const isDev = process.env.NODE_ENV === 'development';
+const isDev2 =process.env.VITE_DEV_SERVER_URL;
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -13,12 +14,14 @@ function createWindow() {
       contextIsolation: true,
       preload: path.join(__dirname, 'preload.cjs'),
     },
-    icon: path.join(__dirname, '../public/jfarm-logo.png'),
+    icon: path.join(__dirname, '../dist/jfarm-logo.png'),
   });
 
+  console.log(isDev);
+  console.log(__dirname+'../dist/jfarm-logo.png');
   // Load the app
   if (isDev) {
-    mainWindow.loadURL('http://localhost:8080');
+    mainWindow.loadURL('http://localhost:5173');
     mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
