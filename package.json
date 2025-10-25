@@ -18,7 +18,7 @@
     "electron:build:dir": "npm run build && electron-builder --win --dir"
   },"build": {
     "appId": "com.jfarmapp.desktop",
-    "productName": "JFARM APPLICATION",
+    "productName": "JFARM",
     "directories": {
       "buildResources": "assets",
       "output": "dist"
