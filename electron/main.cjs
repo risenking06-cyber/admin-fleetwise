@@ -5,8 +5,8 @@ const isDev2 =process.env.VITE_DEV_SERVER_URL;
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
-    width: 1280,
-    height: 980,
+    width: 1800,
+    height: 1200,
     minWidth: 800,
     minHeight: 600,
     webPreferences: {

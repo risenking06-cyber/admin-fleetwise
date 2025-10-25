@@ -7,6 +7,7 @@ import { Users, UsersRound, Car, CreditCard } from 'lucide-react';
 import { StatsLoadingState } from '@/components/LoadingState';
 import FinancialPieChart from '@/components/charts/FinancialPieChart';
 import EmployeeIncomeDebtChart from '@/components/charts/EmployeeIncomeDebtChart';
+import TravelPerDestinationChart from '@/components/charts/TravelPerDestinationChart';
 import { calculateEmployeeWage } from './groups/utils';
 import type { Driver } from '@/types';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -108,114 +109,114 @@ export default function Dashboard() {
         <p className="text-muted-foreground">Welcome to your sugarcane management system</p>
       </div>
 
-      
-    {/* 🟢 TABS WRAPPER */}
-<Tabs defaultValue="overview" className="w-full mb-8">
-  {/* 🔹 Tab Buttons */}
-  <TabsList className="grid grid-cols-2 w-[300px] mx-auto mb-6">
-    <TabsTrigger value="overview">Overview</TabsTrigger>
-    <TabsTrigger value="summary">Income & Expenses</TabsTrigger>
-  </TabsList>
 
-  {/* 🟩 TAB 1 – Overview */}
-  <TabsContent value="overview">
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-      {statCards.map((stat) => {
-        const Icon = stat.icon;
-        return (
-          <Card
-            key={stat.label}
-            className="p-4 md:p-6 hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex-1 min-w-0">
-                <p className="text-xs md:text-sm text-muted-foreground mb-1 truncate">
-                  {stat.label}
-                </p>
-                <p className="text-2xl md:text-3xl font-bold text-foreground">
-                  {stat.value}
-                </p>
+      {/* 🟢 TABS WRAPPER */}
+      <Tabs defaultValue="overview" className="w-full mb-8">
+        {/* 🔹 Tab Buttons */}
+        <TabsList className="grid grid-cols-2 w-[300px] mx-auto mb-6">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="summary">Income & Expenses</TabsTrigger>
+        </TabsList>
+
+        {/* 🟩 TAB 1 – Overview */}
+        <TabsContent value="overview">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            {statCards.map((stat) => {
+              const Icon = stat.icon;
+              return (
+                <Card
+                  key={stat.label}
+                  className="p-4 md:p-6 hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs md:text-sm text-muted-foreground mb-1 truncate">
+                        {stat.label}
+                      </p>
+                      <p className="text-2xl md:text-3xl font-bold text-foreground">
+                        {stat.value}
+                      </p>
+                    </div>
+                    <div
+                      className={cn(
+                        "p-2 md:p-3 rounded-xl bg-primary/10 flex-shrink-0",
+                        stat.color
+                      )}
+                    >
+                      <Icon className="w-5 h-5 md:w-6 md:h-6" />
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        </TabsContent>
+
+        {/* 🟩 TAB 2 – Income & Expenses */}
+        <TabsContent value="summary">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            <Card className="p-4 md:p-6 hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary">
+              <div className="flex items-center justify-between">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs md:text-sm text-muted-foreground mb-1 truncate">
+                    Total Income
+                  </p>
+                  <p className="text-2xl md:text-3xl font-bold text-foreground">
+                    ₱{stats.totalIncome.toLocaleString("en-PH", {
+                      minimumFractionDigits: 2,
+                    })}
+                  </p>
+                </div>
               </div>
-              <div
-                className={cn(
-                  "p-2 md:p-3 rounded-xl bg-primary/10 flex-shrink-0",
-                  stat.color
-                )}
-              >
-                <Icon className="w-5 h-5 md:w-6 md:h-6" />
+            </Card>
+
+            <Card className="p-4 md:p-6 hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary">
+              <div className="flex items-center justify-between">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs md:text-sm text-muted-foreground mb-1 truncate">
+                    Total Expenses
+                  </p>
+                  <p className="text-2xl md:text-3xl font-bold text-foreground">
+                    ₱{stats.totalExpenses.toLocaleString("en-PH", {
+                      minimumFractionDigits: 2,
+                    })}
+                  </p>
+                </div>
               </div>
-            </div>
-          </Card>
-        );
-      })}
-    </div>
-  </TabsContent>
+            </Card>
 
-  {/* 🟩 TAB 2 – Income & Expenses */}
-  <TabsContent value="summary">
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-      <Card className="p-4 md:p-6 hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary">
-        <div className="flex items-center justify-between">
-          <div className="flex-1 min-w-0">
-            <p className="text-xs md:text-sm text-muted-foreground mb-1 truncate">
-              Total Income
-            </p>
-            <p className="text-2xl md:text-3xl font-bold text-foreground">
-              ₱{stats.totalIncome.toLocaleString("en-PH", {
-                minimumFractionDigits: 2,
-              })}
-            </p>
-          </div>
-        </div>
-      </Card>
+            <Card className="p-4 md:p-6 hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary">
+              <div className="flex items-center justify-between">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs md:text-sm text-muted-foreground mb-1 truncate">
+                    Net Income
+                  </p>
+                  <p className="text-2xl md:text-3xl font-bold text-foreground">
+                    ₱{stats.netIncome.toLocaleString("en-PH", {
+                      minimumFractionDigits: 2,
+                    })}
+                  </p>
+                </div>
+              </div>
+            </Card>
 
-      <Card className="p-4 md:p-6 hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary">
-        <div className="flex items-center justify-between">
-          <div className="flex-1 min-w-0">
-            <p className="text-xs md:text-sm text-muted-foreground mb-1 truncate">
-              Total Expenses
-            </p>
-            <p className="text-2xl md:text-3xl font-bold text-foreground">
-              ₱{stats.totalExpenses.toLocaleString("en-PH", {
-                minimumFractionDigits: 2,
-              })}
-            </p>
+            <Card className="p-4 md:p-6 hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary">
+              <div className="flex items-center justify-between">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs md:text-sm text-muted-foreground mb-1 truncate">
+                    Total Debts
+                  </p>
+                  <p className="text-2xl md:text-3xl font-bold text-foreground">
+                    ₱{stats.totalDebts.toLocaleString("en-PH", {
+                      minimumFractionDigits: 2,
+                    })}
+                  </p>
+                </div>
+              </div>
+            </Card>
           </div>
-        </div>
-      </Card>
-
-      <Card className="p-4 md:p-6 hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary">
-        <div className="flex items-center justify-between">
-          <div className="flex-1 min-w-0">
-            <p className="text-xs md:text-sm text-muted-foreground mb-1 truncate">
-              Net Income
-            </p>
-            <p className="text-2xl md:text-3xl font-bold text-foreground">
-              ₱{stats.netIncome.toLocaleString("en-PH", {
-                minimumFractionDigits: 2,
-              })}
-            </p>
-          </div>
-        </div>
-      </Card>
-
-      <Card className="p-4 md:p-6 hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary">
-        <div className="flex items-center justify-between">
-          <div className="flex-1 min-w-0">
-            <p className="text-xs md:text-sm text-muted-foreground mb-1 truncate">
-              Total Debts
-            </p>
-            <p className="text-2xl md:text-3xl font-bold text-foreground">
-              ₱{stats.totalDebts.toLocaleString("en-PH", {
-                minimumFractionDigits: 2,
-              })}
-            </p>
-          </div>
-        </div>
-      </Card>
-    </div>
-  </TabsContent>
-</Tabs>
+        </TabsContent>
+      </Tabs>
 
       {/* 🟦 Row 2 – Financial Summary + Pie Chart */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
@@ -223,7 +224,7 @@ export default function Dashboard() {
         <Card className="p-6">
           <h2 className="text-lg font-semibold mb-4">Financial Breakdown</h2>
           <FinancialPieChart
-            totalIncome={stats.totalIncome}
+            // totalIncome={stats.totalIncome}
             totalExpenses={stats.totalExpenses}
             netIncome={stats.netIncome}
           />
@@ -236,14 +237,10 @@ export default function Dashboard() {
       </div>
 
       {/* 🟨 Row 3 – Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         <Card className="p-6">
-          Soon
-        </Card>
-
-        <Card className="p-6">
-          <h2 className="text-lg font-semibold mb-4">Soon</h2>
-
+          <h2 className="text-lg font-semibold mb-4">Sugarcane Price</h2>
+          <TravelPerDestinationChart />
         </Card>
       </div>
     </div>
