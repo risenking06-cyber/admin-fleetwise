@@ -13,7 +13,7 @@ Open `package.json` and add this line at the **root level** (after the "type" fi
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "main": "electron/main.js",    ← ADD THIS LINE
+  "main": "electron/main.cjs",    ← ADD THIS LINE
   "scripts": {
 ```
 

@@ -25,6 +25,6 @@
     "createStartMenuShortcut": true
   },
   "extraMetadata": {
-    "main": "electron/main.js"
+    "main": "electron/main.cjs"
   }
 }
