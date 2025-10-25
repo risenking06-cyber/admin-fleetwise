@@ -9,6 +9,7 @@ import FinancialPieChart from '@/components/charts/FinancialPieChart';
 import EmployeeIncomeDebtChart from '@/components/charts/EmployeeIncomeDebtChart';
 import { calculateEmployeeWage } from './groups/utils';
 import type { Driver } from '@/types';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 function cn(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
@@ -106,75 +107,114 @@ export default function Dashboard() {
         <p className="text-muted-foreground">Welcome to your sugarcane management system</p>
       </div>
 
-      {/* 🟩 Row 1 – Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
-        {statCards.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <Card
-              key={stat.label}
-              className="p-4 md:p-6 hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs md:text-sm text-muted-foreground mb-1 truncate">
-                    {stat.label}
-                  </p>
-                  <p className="text-2xl md:text-3xl font-bold text-foreground">{stat.value}</p>
-                </div>
-                <div className={cn('p-2 md:p-3 rounded-xl bg-primary/10 flex-shrink-0', stat.color)}>
-                  <Icon className="w-5 h-5 md:w-6 md:h-6" />
-                </div>
+      
+    {/* 🟢 TABS WRAPPER */}
+<Tabs defaultValue="overview" className="w-full mb-8">
+  {/* 🔹 Tab Buttons */}
+  <TabsList className="grid grid-cols-2 w-[300px] mx-auto mb-6">
+    <TabsTrigger value="overview">Overview</TabsTrigger>
+    <TabsTrigger value="summary">Income & Expenses</TabsTrigger>
+  </TabsList>
+
+  {/* 🟩 TAB 1 – Overview */}
+  <TabsContent value="overview">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      {statCards.map((stat) => {
+        const Icon = stat.icon;
+        return (
+          <Card
+            key={stat.label}
+            className="p-4 md:p-6 hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs md:text-sm text-muted-foreground mb-1 truncate">
+                  {stat.label}
+                </p>
+                <p className="text-2xl md:text-3xl font-bold text-foreground">
+                  {stat.value}
+                </p>
               </div>
-            </Card>
-          );
-        })}
-      </div>
+              <div
+                className={cn(
+                  "p-2 md:p-3 rounded-xl bg-primary/10 flex-shrink-0",
+                  stat.color
+                )}
+              >
+                <Icon className="w-5 h-5 md:w-6 md:h-6" />
+              </div>
+            </div>
+          </Card>
+        );
+      })}
+    </div>
+  </TabsContent>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+  {/* 🟩 TAB 2 – Income & Expenses */}
+  <TabsContent value="summary">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      <Card className="p-4 md:p-6 hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary">
+        <div className="flex items-center justify-between">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs md:text-sm text-muted-foreground mb-1 truncate">
+              Total Income
+            </p>
+            <p className="text-2xl md:text-3xl font-bold text-foreground">
+              ₱{stats.totalIncome.toLocaleString("en-PH", {
+                minimumFractionDigits: 2,
+              })}
+            </p>
+          </div>
+        </div>
+      </Card>
 
-        <Card className="p-4 md:p-6 hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary">
-          <div className="flex items-center justify-between">
-            <div className="flex-1 min-w-0">
-              <p className="text-xs md:text-sm text-muted-foreground mb-1 truncate">
-                Total Income
-              </p>
-              <p className="text-2xl md:text-3xl font-bold text-foreground"> ₱{stats.totalIncome.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
-            </div>
+      <Card className="p-4 md:p-6 hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary">
+        <div className="flex items-center justify-between">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs md:text-sm text-muted-foreground mb-1 truncate">
+              Total Expenses
+            </p>
+            <p className="text-2xl md:text-3xl font-bold text-foreground">
+              ₱{stats.totalExpenses.toLocaleString("en-PH", {
+                minimumFractionDigits: 2,
+              })}
+            </p>
           </div>
-        </Card>
-        <Card className="p-4 md:p-6 hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary">
-          <div className="flex items-center justify-between">
-            <div className="flex-1 min-w-0">
-              <p className="text-xs md:text-sm text-muted-foreground mb-1 truncate">
-                Total Expenses
-              </p>
-              <p className="text-2xl md:text-3xl font-bold text-foreground"> ₱{stats.totalExpenses.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-4 md:p-6 hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary">
-          <div className="flex items-center justify-between">
-            <div className="flex-1 min-w-0">
-              <p className="text-xs md:text-sm text-muted-foreground mb-1 truncate">
-                Net Income
-              </p>
-              <p className="text-2xl md:text-3xl font-bold text-foreground"> ₱{stats.netIncome.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-4 md:p-6 hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary">
-          <div className="flex items-center justify-between">
-            <div className="flex-1 min-w-0">
-              <p className="text-xs md:text-sm text-muted-foreground mb-1 truncate">
-                Total Debts
-              </p>
-              <p className="text-2xl md:text-3xl font-bold text-foreground"> ₱{stats.totalDebts.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
-            </div>
-          </div>
-        </Card>
-      </div>
+        </div>
+      </Card>
 
+      <Card className="p-4 md:p-6 hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary">
+        <div className="flex items-center justify-between">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs md:text-sm text-muted-foreground mb-1 truncate">
+              Net Income
+            </p>
+            <p className="text-2xl md:text-3xl font-bold text-foreground">
+              ₱{stats.netIncome.toLocaleString("en-PH", {
+                minimumFractionDigits: 2,
+              })}
+            </p>
+          </div>
+        </div>
+      </Card>
+
+      <Card className="p-4 md:p-6 hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary">
+        <div className="flex items-center justify-between">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs md:text-sm text-muted-foreground mb-1 truncate">
+              Total Debts
+            </p>
+            <p className="text-2xl md:text-3xl font-bold text-foreground">
+              ₱{stats.totalDebts.toLocaleString("en-PH", {
+                minimumFractionDigits: 2,
+              })}
+            </p>
+          </div>
+        </div>
+      </Card>
+    </div>
+  </TabsContent>
+</Tabs>
 
       {/* 🟦 Row 2 – Financial Summary + Pie Chart */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">

@@ -14,7 +14,7 @@ interface FinancialPieChartProps {
   netIncome: number;
 }
 
-const COLORS = ['#22c55e', '#ef4444', '#3b82f6']; // Green, Red, Blue
+const COLORS = [ '#ef4444', '#3b82f6']; // Green, Red, Blue
 
 function renderActiveShape(props: any) {
   const RADIAN = Math.PI / 180;
@@ -44,7 +44,14 @@ function renderActiveShape(props: any) {
 
   return (
     <g>
-      <text x={cx} y={cy} dy={8} textAnchor="middle" fill={fill} className="font-semibold">
+      <text
+        x={cx}
+        y={cy}
+        dy={8}
+        textAnchor="middle"
+        fill={fill}
+        className="font-semibold"
+      >
         {payload.name}
       </text>
 
@@ -97,8 +104,9 @@ export default function FinancialPieChart({
 }: FinancialPieChartProps) {
   const [activeIndex, setActiveIndex] = useState(0);
 
+  const Income = totalIncome;
   const data = [
-    { name: 'Income', value: totalIncome },
+    // { name: 'Income', value: totalIncome },
     { name: 'Expenses', value: totalExpenses },
     { name: 'Net Income', value: netIncome },
   ];
@@ -116,13 +124,17 @@ export default function FinancialPieChart({
           cy="50%"
           innerRadius={80}
           outerRadius={120}
+          startAngle={180} // ← Rotates the chart 90° counterclockwise (starts from top)
+          endAngle={-180}
           dataKey="value"
           onMouseEnter={handlePieEnter}
+          paddingAngle={6} // ← Creates space between slices like (  )
         >
           {data.map((_, i) => (
             <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />
           ))}
         </Pie>
+    
         <Tooltip
           formatter={(val: number, name: string) =>
             [`₱${val.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`, name]
