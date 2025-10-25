@@ -14,6 +14,7 @@ export default function Lands() {
   const [lands, setLands] = useState<Land[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingLand, setEditingLand] = useState<Land | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ name: '' });
 
   useEffect(() => {
@@ -33,6 +34,10 @@ export default function Lands() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
     try {
       if (editingLand) {
         await updateDoc(doc(db, 'lands', editingLand.id), formData);
@@ -41,12 +46,14 @@ export default function Lands() {
         await addDoc(collection(db, 'lands'), formData);
         toast.success('Land added successfully');
       }
-      setIsDialogOpen(false);
+      await fetchLands();
       setFormData({ name: '' });
       setEditingLand(null);
-      fetchLands();
+      setIsDialogOpen(false);
     } catch (error) {
       toast.error('Operation failed');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -86,7 +93,9 @@ export default function Lands() {
                   required
                 />
               </div>
-              <Button type="submit" className="w-full">{editingLand ? 'Update' : 'Create'}</Button>
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? 'Processing...' : editingLand ? 'Update' : 'Create'}
+              </Button>
             </form>
           </DialogContent>
         </Dialog>

@@ -14,6 +14,7 @@ export default function Plates() {
   const [plates, setPlates] = useState<Plate[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPlate, setEditingPlate] = useState<Plate | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ name: '' });
 
   useEffect(() => {
@@ -32,6 +33,10 @@ export default function Plates() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
     try {
       if (editingPlate) {
         await updateDoc(doc(db, 'plates', editingPlate.id), formData);
@@ -40,12 +45,14 @@ export default function Plates() {
         await addDoc(collection(db, 'plates'), formData);
         toast.success('Plate added successfully');
       }
-      setIsDialogOpen(false);
+      await fetchPlates();
       setFormData({ name: '' });
       setEditingPlate(null);
-      fetchPlates();
+      setIsDialogOpen(false);
     } catch (error) {
       toast.error('Operation failed');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -85,7 +92,9 @@ export default function Plates() {
                   required
                 />
               </div>
-              <Button type="submit" className="w-full">{editingPlate ? 'Update' : 'Create'}</Button>
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? 'Processing...' : editingPlate ? 'Update' : 'Create'}
+              </Button>
             </form>
           </DialogContent>
         </Dialog>

@@ -18,6 +18,7 @@ export default function Debts() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDebt, setEditingDebt] = useState<Debt | null>(null);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ 
     employeeId: '', 
     amount: 0, 
@@ -50,6 +51,10 @@ export default function Debts() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
     try {
       if (editingDebt) {
         await updateDoc(doc(db, 'debts', editingDebt.id), formData);
@@ -58,12 +63,14 @@ export default function Debts() {
         await addDoc(collection(db, 'debts'), { ...formData, paid: false });
         toast.success('Debt added successfully');
       }
-      setIsDialogOpen(false);
+      await fetchDebts();
       setEditingDebt(null);
       setFormData({ employeeId: '', amount: 0, description: '', date: new Date().toISOString().split('T')[0], paid: false });
-      fetchDebts();
+      setIsDialogOpen(false);
     } catch (error) {
       toast.error('Operation failed');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -212,8 +219,8 @@ export default function Debts() {
                 required
               />
             </div>
-            <Button type="submit" className="w-full">
-              {editingDebt ? 'Update' : 'Create'}
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? 'Processing...' : editingDebt ? 'Update' : 'Create'}
             </Button>
           </form>
         </DialogContent>

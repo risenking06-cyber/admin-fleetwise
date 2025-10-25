@@ -45,6 +45,7 @@ export default function Drivers() {
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
   const [driverTravels, setDriverTravels] = useState<Travel[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const travelsPerPage = 5;
 
@@ -127,12 +128,15 @@ export default function Drivers() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isSubmitting) return;
 
     if (!driverWage || Number(driverWage) <= 0) {
       toast.error('Please enter a valid wage');
       return;
     }
 
+    setIsSubmitting(true);
     try {
       if (editingDriver) {
         await updateDoc(doc(db, 'drivers', editingDriver.id), {
@@ -142,6 +146,7 @@ export default function Drivers() {
       } else {
         if (!selectedEmployeeId) {
           toast.error('Please select an employee');
+          setIsSubmitting(false);
           return;
         }
         await addDoc(collection(db, 'drivers'), {
@@ -151,14 +156,16 @@ export default function Drivers() {
         toast.success('Driver added successfully');
       }
 
-      setIsDialogOpen(false);
+      await fetchDrivers();
       setEditingDriver(null);
       setSelectedEmployeeId('');
       setDriverWage('');
-      fetchDrivers();
+      setIsDialogOpen(false);
     } catch (error) {
       console.error(error);
       toast.error('Operation failed');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -262,8 +269,8 @@ export default function Drivers() {
                 />
               </div>
 
-              <Button type="submit" className="w-full">
-                {editingDriver ? 'Update Driver' : 'Assign Driver'}
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? 'Processing...' : editingDriver ? 'Update Driver' : 'Assign Driver'}
               </Button>
             </form>
           </DialogContent>

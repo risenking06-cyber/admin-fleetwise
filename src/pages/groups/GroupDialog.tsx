@@ -30,6 +30,7 @@ export default function GroupDialog({
   onSubmit,
 }: GroupDialogProps) {
   const [form, setForm] = React.useState<GroupFormData>(initial || { name: '', wage: 0, employees: [] });
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   React.useEffect(() => {
     if (editingGroup) {
@@ -53,7 +54,15 @@ export default function GroupDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onSubmit(form);
+    
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
+    try {
+      await onSubmit(form);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // ✅ Sort employees alphabetically by name
@@ -108,8 +117,8 @@ export default function GroupDialog({
             </div>
           </div>
 
-          <Button type="submit" className="w-full">
-            {editingGroup ? 'Update' : 'Create'}
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? 'Processing...' : editingGroup ? 'Update' : 'Create'}
           </Button>
         </form>
       </DialogContent>

@@ -14,6 +14,7 @@ export default function Destinations() {
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDestination, setEditingDestination] = useState<Destination | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ name: '' });
 
   useEffect(() => {
@@ -29,6 +30,10 @@ export default function Destinations() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
     try {
       if (editingDestination) {
         await updateDoc(doc(db, 'destinations', editingDestination.id), formData);
@@ -37,12 +42,14 @@ export default function Destinations() {
         await addDoc(collection(db, 'destinations'), formData);
         toast.success('Destination added successfully');
       }
-      setIsDialogOpen(false);
+      await fetchDestinations();
       setFormData({ name: '' });
       setEditingDestination(null);
-      fetchDestinations();
+      setIsDialogOpen(false);
     } catch (error) {
       toast.error('Operation failed');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -82,7 +89,9 @@ export default function Destinations() {
                   required
                 />
               </div>
-              <Button type="submit" className="w-full">{editingDestination ? 'Update' : 'Create'}</Button>
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? 'Processing...' : editingDestination ? 'Update' : 'Create'}
+              </Button>
             </form>
           </DialogContent>
         </Dialog>

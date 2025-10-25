@@ -24,10 +24,15 @@ export default function Employees() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ name: '', type: '' });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
     try {
       if (editingEmployee) {
         await updateDoc(doc(db, 'employees', editingEmployee.id), formData);
@@ -36,12 +41,14 @@ export default function Employees() {
         await addDoc(collection(db, 'employees'), formData);
         toast.success('Employee added successfully');
       }
-      setIsDialogOpen(false);
+      await refetch();
       setFormData({ name: '', type: '' });
       setEditingEmployee(null);
-      await refetch();
+      setIsDialogOpen(false);
     } catch (error) {
       toast.error('Operation failed');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -126,8 +133,8 @@ export default function Employees() {
                 </Select>
               </div>
 
-              <Button type="submit" className="w-full">
-                {editingEmployee ? 'Update' : 'Create'}
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? 'Processing...' : editingEmployee ? 'Update' : 'Create'}
               </Button>
             </form>
           </DialogContent>
