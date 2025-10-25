@@ -9,12 +9,12 @@ import {
 } from 'recharts';
 
 interface FinancialPieChartProps {
-  totalIncome: number;
+  // totalIncome: number;
   totalExpenses: number;
   netIncome: number;
 }
 
-const COLORS = [ '#ef4444', '#3b82f6']; // Green, Red, Blue
+const COLORS = [ '#ef4444', '#2253bbff']; // Green, Red, Blue
 
 function renderActiveShape(props: any) {
   const RADIAN = Math.PI / 180;
@@ -98,13 +98,13 @@ function renderActiveShape(props: any) {
 }
 
 export default function FinancialPieChart({
-  totalIncome,
+  // totalIncome,
   totalExpenses,
   netIncome,
 }: FinancialPieChartProps) {
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const Income = totalIncome;
+  // const Income = totalIncome;
   const data = [
     // { name: 'Income', value: totalIncome },
     { name: 'Expenses', value: totalExpenses },

@@ -63,7 +63,8 @@ export default function Dashboard() {
       const driver = drivers.find((d) => d.employeeId === t.driver);
       const driverWage = driver ? driver.wage || 0 : 0;
 
-      return sum + groupWages + otherExpenses + driverWage;
+      // return sum + groupWages + otherExpenses + driverWage;
+      return sum + groupWages + otherExpenses;
     }, 0);
 
     const netIncome = totalIncome - totalExpenses;

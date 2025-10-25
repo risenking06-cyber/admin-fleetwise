@@ -39,7 +39,7 @@
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "shortcutName": "JFARM APPLICATION"
+      "shortcutName": "JFARM"
     }
   },
   "dependencies": {
