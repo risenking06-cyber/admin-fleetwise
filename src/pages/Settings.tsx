@@ -54,6 +54,7 @@ export default function Settings() {
     }
   };
 
+
   const handleDownloadUpdate = async () => {
     try {
       setLoading(true);
@@ -233,6 +234,11 @@ export default function Settings() {
             App Updates
           </h2>
 
+          {/* Show current version */}
+          <p className="text-center text-sm text-muted-foreground mb-4">
+            Current Version: <span className="font-medium">{currentVersion}</span>
+          </p>
+
           <div className="flex flex-col items-center text-center p-4 rounded-2xl border bg-muted/30 hover:bg-muted/50 transition">
             <RotateCcw className="w-10 h-10 text-green-500 mb-3" />
             <h3 className="font-semibold mb-2">Check for Updates</h3>
@@ -263,6 +269,7 @@ export default function Settings() {
             </div>
           )}
         </Card>
+
 
       </div>
     </div>
