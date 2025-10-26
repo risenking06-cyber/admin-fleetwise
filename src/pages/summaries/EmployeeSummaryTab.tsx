@@ -71,12 +71,27 @@ export default function EmployeeSummaryTab({
     return employees.filter((emp) => group.employees.includes(emp.id));
   }, [selectedGroupId, employees, groups]);
 
-  const employeeStats = useMemo(() => {
-  const sortedEmployees = [...filteredEmployees].sort((a, b) =>
-    a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
-  );
-  return sortedEmployees.map((emp) => {
+  // 🟩 CHANGE STARTS HERE -------------------------
+  // Exclude drivers from employee summary table
+  // We gather all employee IDs who acted as driver in any travel.
+  const driverIds = useMemo(() => {
+    const ids = new Set<string>();
+    travels.forEach((t) => {
+      if (t.driver) ids.add(t.driver);
+    });
+    return ids;
+  }, [travels]);
+  // 🟩 CHANGE ENDS HERE ---------------------------
 
+  const employeeStats = useMemo(() => {
+    const sortedEmployees = [...filteredEmployees]
+      // 🟩 CHANGE HERE: exclude all drivers
+      .filter((emp) => !driverIds.has(emp.id))
+      .sort((a, b) =>
+        a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
+      );
+
+    return sortedEmployees.map((emp) => {
       const empTravels = getEmployeeTravels(
         emp.id,
         selectedGroupId === "all" ? null : selectedGroupId,
@@ -101,7 +116,15 @@ export default function EmployeeSummaryTab({
 
       return { employee: emp, daysWorked, absentDays, wage, debt };
     });
-  }, [filteredEmployees, selectedGroupId, travels, groups, debts, totalWorkingDays]);
+  }, [
+    filteredEmployees,
+    selectedGroupId,
+    travels,
+    groups,
+    debts,
+    totalWorkingDays,
+    driverIds, // 🟩 include this dependency for reactivity
+  ]);
 
   const totalDaysWorked = employeeStats.reduce((s, st) => s + st.daysWorked, 0);
   const totalWage = employeeStats.reduce((s, st) => s + st.wage, 0);
@@ -192,123 +215,129 @@ export default function EmployeeSummaryTab({
     doc.setFontSize(9);
     doc.setTextColor(130);
     doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, footerY);
-    doc.text("© Your Company Name", pageWidth - 14, footerY, { align: "right" });
+    doc.text("© Your Company Name", pageWidth - 14, footerY, {
+      align: "right",
+    });
 
     doc.save(`${title}.pdf`);
   };
 
-  // 🖼️ IMAGE DOWNLOAD
+  // 🖼️ IMAGE DOWNLOAD (unchanged)
   const handleDownloadImage = async () => {
-  if (!reportRef.current) return;
-  const element = reportRef.current;
+    if (!reportRef.current) return;
+    const element = reportRef.current;
 
-  // Create an offscreen A4-sized container for a clean image
-  const a4Container = document.createElement("div");
-  a4Container.style.width = "794px"; // A4 width @ 96dpi
-  a4Container.style.height = "1123px"; // A4 height @ 96dpi
-  a4Container.style.padding = "40px";
-  a4Container.style.backgroundColor = "#f9fafb";
-  a4Container.style.fontFamily = "'Inter', sans-serif";
-  a4Container.style.display = "flex";
-  a4Container.style.flexDirection = "column";
-  a4Container.style.justifyContent = "flex-start";
-  a4Container.style.alignItems = "stretch";
-  a4Container.style.boxSizing = "border-box";
-  a4Container.style.border = "1px solid #e5e7eb";
-  a4Container.style.borderRadius = "12px";
-  a4Container.style.gap = "20px";
+    const a4Container = document.createElement("div");
+    a4Container.style.width = "794px";
+    a4Container.style.height = "1123px";
+    a4Container.style.padding = "40px";
+    a4Container.style.backgroundColor = "#f9fafb";
+    a4Container.style.fontFamily = "'Inter', sans-serif";
+    a4Container.style.display = "flex";
+    a4Container.style.flexDirection = "column";
+    a4Container.style.justifyContent = "flex-start";
+    a4Container.style.alignItems = "stretch";
+    a4Container.style.boxSizing = "border-box";
+    a4Container.style.border = "1px solid #e5e7eb";
+    a4Container.style.borderRadius = "12px";
+    a4Container.style.gap = "20px";
 
-  // Header
-  const title = document.createElement("h2");
-  title.innerText =
-    selectedGroupId === "all"
-      ? "Employee Summary - All Groups"
-      : `Employee Summary - ${
-          groups.find((g) => g.id === selectedGroupId)?.name || ""
-        }`;
-  title.style.textAlign = "center";
-  title.style.color = "#1e3a8a";
-  title.style.fontSize = "20px";
-  title.style.fontWeight = "700";
-  title.style.marginBottom = "12px";
-  a4Container.appendChild(title);
+    const title = document.createElement("h2");
+    title.innerText =
+      selectedGroupId === "all"
+        ? "Employee Summary - All Groups"
+        : `Employee Summary - ${
+            groups.find((g) => g.id === selectedGroupId)?.name || ""
+          }`;
+    title.style.textAlign = "center";
+    title.style.color = "#1e3a8a";
+    title.style.fontSize = "20px";
+    title.style.fontWeight = "700";
+    title.style.marginBottom = "12px";
+    a4Container.appendChild(title);
 
-  // Summary section
-  const summary = document.createElement("div");
-  summary.style.display = "grid";
-  summary.style.gridTemplateColumns = "repeat(3, 1fr)";
-  summary.style.gap = "12px";
-  summary.innerHTML = `
-    <div style="background:#eff6ff;padding:16px;border-radius:10px;text-align:center">
-      <div style="color:#64748b;font-size:13px;">Total Days Worked</div>
-      <div style="color:#1d4ed8;font-size:22px;font-weight:700;">${totalDaysWorked}</div>
-    </div>
-    <div style="background:#ecfdf5;padding:16px;border-radius:10px;text-align:center">
-      <div style="color:#64748b;font-size:13px;">Total Wage</div>
-      <div style="color:#047857;font-size:22px;font-weight:700;">₱${totalWage.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-    </div>
-    <div style="background:#fefce8;padding:16px;border-radius:10px;text-align:center">
-      <div style="color:#64748b;font-size:13px;">Total Debts (Unpaid)</div>
-      <div style="color:#ca8a04;font-size:22px;font-weight:700;">₱${totalDebts.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-    </div>
-  `;
-  a4Container.appendChild(summary);
+    const summary = document.createElement("div");
+    summary.style.display = "grid";
+    summary.style.gridTemplateColumns = "repeat(3, 1fr)";
+    summary.style.gap = "12px";
+    summary.innerHTML = `
+      <div style="background:#eff6ff;padding:16px;border-radius:10px;text-align:center">
+        <div style="color:#64748b;font-size:13px;">Total Days Worked</div>
+        <div style="color:#1d4ed8;font-size:22px;font-weight:700;">${totalDaysWorked}</div>
+      </div>
+      <div style="background:#ecfdf5;padding:16px;border-radius:10px;text-align:center">
+        <div style="color:#64748b;font-size:13px;">Total Wage</div>
+        <div style="color:#047857;font-size:22px;font-weight:700;">₱${totalWage.toLocaleString(
+          "en-PH",
+          { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+        )}</div>
+      </div>
+      <div style="background:#fefce8;padding:16px;border-radius:10px;text-align:center">
+        <div style="color:#64748b;font-size:13px;">Total Debts (Unpaid)</div>
+        <div style="color:#ca8a04;font-size:22px;font-weight:700;">₱${totalDebts.toLocaleString(
+          "en-PH",
+          { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+        )}</div>
+      </div>
+    `;
+    a4Container.appendChild(summary);
 
-  // Table
-  const table = document.createElement("table");
-  table.style.width = "100%";
-  table.style.borderCollapse = "collapse";
-  table.style.marginTop = "20px";
-  table.innerHTML = `
-    <thead style="background:#1e3a8a;color:white;font-size:13px;">
-      <tr>
-        <th style="padding:10px;text-align:left;">Employee</th>
-        <th style="padding:10px;text-align:right;">Present</th>
-        <th style="padding:10px;text-align:right;">Absent</th>
-        <th style="padding:10px;text-align:right;">Total Wage</th>
-        <th style="padding:10px;text-align:right;">Unpaid Debt</th>
-      </tr>
-    </thead>
-    <tbody style="font-size:12px;color:#111827;">
-      ${employeeStats
-        .map(
-          ({ employee, daysWorked, absentDays, wage, debt }, i) => `
-        <tr style="background:${i % 2 ? "#f9fafb" : "#ffffff"};">
-          <td style="padding:8px 10px;border-bottom:1px solid #e5e7eb;">${employee.name}</td>
-          <td style="padding:8px 10px;text-align:right;border-bottom:1px solid #e5e7eb;">${daysWorked}</td>
-          <td style="padding:8px 10px;text-align:right;color:#dc2626;border-bottom:1px solid #e5e7eb;">${absentDays}</td>
-          <td style="padding:8px 10px;text-align:right;color:#047857;border-bottom:1px solid #e5e7eb;">₱${wage.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-          <td style="padding:8px 10px;text-align:right;color:#ca8a04;border-bottom:1px solid #e5e7eb;">₱${debt.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-        </tr>`
-        )
-        .join("")}
-    </tbody>
-  `;
-  a4Container.appendChild(table);
+    const table = document.createElement("table");
+    table.style.width = "100%";
+    table.style.borderCollapse = "collapse";
+    table.style.marginTop = "20px";
+    table.innerHTML = `
+      <thead style="background:#1e3a8a;color:white;font-size:13px;">
+        <tr>
+          <th style="padding:10px;text-align:left;">Employee</th>
+          <th style="padding:10px;text-align:right;">Present</th>
+          <th style="padding:10px;text-align:right;">Absent</th>
+          <th style="padding:10px;text-align:right;">Total Wage</th>
+          <th style="padding:10px;text-align:right;">Unpaid Debt</th>
+        </tr>
+      </thead>
+      <tbody style="font-size:12px;color:#111827;">
+        ${employeeStats
+          .map(
+            ({ employee, daysWorked, absentDays, wage, debt }, i) => `
+          <tr style="background:${i % 2 ? "#f9fafb" : "#ffffff"};">
+            <td style="padding:8px 10px;border-bottom:1px solid #e5e7eb;">${employee.name}</td>
+            <td style="padding:8px 10px;text-align:right;border-bottom:1px solid #e5e7eb;">${daysWorked}</td>
+            <td style="padding:8px 10px;text-align:right;color:#dc2626;border-bottom:1px solid #e5e7eb;">${absentDays}</td>
+            <td style="padding:8px 10px;text-align:right;color:#047857;border-bottom:1px solid #e5e7eb;">₱${wage.toLocaleString(
+              "en-PH",
+              { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+            )}</td>
+            <td style="padding:8px 10px;text-align:right;color:#ca8a04;border-bottom:1px solid #e5e7eb;">₱${debt.toLocaleString(
+              "en-PH",
+              { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+            )}</td>
+          </tr>`
+          )
+          .join("")}
+      </tbody>
+    `;
+    a4Container.appendChild(table);
 
-  // Footer
-  const footer = document.createElement("div");
-  footer.innerText = `Generated on: ${new Date().toLocaleString()}`;
-  footer.style.textAlign = "right";
-  footer.style.fontSize = "11px";
-  footer.style.color = "#6b7280";
-  footer.style.marginTop = "20px";
-  a4Container.appendChild(footer);
+    const footer = document.createElement("div");
+    footer.innerText = `Generated on: ${new Date().toLocaleString()}`;
+    footer.style.textAlign = "right";
+    footer.style.fontSize = "11px";
+    footer.style.color = "#6b7280";
+    footer.style.marginTop = "20px";
+    a4Container.appendChild(footer);
 
-  document.body.appendChild(a4Container);
+    document.body.appendChild(a4Container);
 
-  // Capture and download
-  const canvas = await html2canvas(a4Container, { scale: 3 });
-  const imgData = canvas.toDataURL("image/png");
-  const link = document.createElement("a");
-  link.href = imgData;
-  link.download = "employee_summary_a4.png";
-  link.click();
+    const canvas = await html2canvas(a4Container, { scale: 3 });
+    const imgData = canvas.toDataURL("image/png");
+    const link = document.createElement("a");
+    link.href = imgData;
+    link.download = "employee_summary_a4.png";
+    link.click();
 
-  // Clean up
-  document.body.removeChild(a4Container);
-};
-
+    document.body.removeChild(a4Container);
+  };
 
   return (
     <div className="space-y-6">
@@ -322,7 +351,10 @@ export default function EmployeeSummaryTab({
             {groups
               .slice()
               .sort((a, b) =>
-                b.name.localeCompare(a.name, undefined, { numeric: true, sensitivity: 'base' })
+                b.name.localeCompare(a.name, undefined, {
+                  numeric: true,
+                  sensitivity: "base",
+                })
               )
               .map((group) => (
                 <SelectItem key={group.id} value={group.id}>
@@ -331,7 +363,6 @@ export default function EmployeeSummaryTab({
               ))}
           </SelectContent>
         </Select>
-
 
         <div className="flex gap-2">
           <Button
@@ -344,13 +375,17 @@ export default function EmployeeSummaryTab({
         </div>
       </div>
 
-      {/* 📊 Report Content (captured for image) */}
+      {/* 📊 Report Content */}
       <div ref={reportRef} className="space-y-6 bg-white p-6 rounded-xl shadow-sm">
         <div className="grid grid-cols-3 gap-4">
           <Card className="p-6 bg-blue-50">
             <CardContent className="p-0">
-              <p className="text-sm text-muted-foreground mb-2">Total Days Worked</p>
-              <p className="text-3xl font-bold text-blue-600">{totalDaysWorked}</p>
+              <p className="text-sm text-muted-foreground mb-2">
+                Total Days Worked
+              </p>
+              <p className="text-3xl font-bold text-blue-600">
+                {totalDaysWorked}
+              </p>
             </CardContent>
           </Card>
 
@@ -358,16 +393,26 @@ export default function EmployeeSummaryTab({
             <CardContent className="p-0">
               <p className="text-sm text-muted-foreground mb-2">Total Wage</p>
               <p className="text-3xl font-bold text-green-600">
-                ₱{totalWage.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                ₱
+                {totalWage.toLocaleString("en-PH", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </p>
             </CardContent>
           </Card>
 
           <Card className="p-6 bg-yellow-50">
             <CardContent className="p-0">
-              <p className="text-sm text-muted-foreground mb-2">Total Debts (Unpaid)</p>
+              <p className="text-sm text-muted-foreground mb-2">
+                Total Debts (Unpaid)
+              </p>
               <p className="text-3xl font-bold text-yellow-600">
-                ₱{totalDebts.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                ₱
+                {totalDebts.toLocaleString("en-PH", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </p>
             </CardContent>
           </Card>
@@ -378,11 +423,21 @@ export default function EmployeeSummaryTab({
             <table className="w-full">
               <thead className="bg-muted/50">
                 <tr>
-                  <th className="text-left py-3 px-4 text-sm font-semibold">Employee</th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold">Present</th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold">Absent</th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold">Total Wage</th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold">Unpaid Debt</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold">
+                    Employee
+                  </th>
+                  <th className="text-right py-3 px-4 text-sm font-semibold">
+                    Present
+                  </th>
+                  <th className="text-right py-3 px-4 text-sm font-semibold">
+                    Absent
+                  </th>
+                  <th className="text-right py-3 px-4 text-sm font-semibold">
+                    Total Wage
+                  </th>
+                  <th className="text-right py-3 px-4 text-sm font-semibold">
+                    Unpaid Debt
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -392,16 +447,26 @@ export default function EmployeeSummaryTab({
                       key={employee.id}
                       className="border-b border-border hover:bg-muted/30 transition-colors"
                     >
-                      <td className="py-3 px-4 font-medium">{employee.name}</td>
+                      <td className="py-3 px-4 font-medium">
+                        {employee.name}
+                      </td>
                       <td className="py-3 px-4 text-right">{daysWorked}</td>
                       <td className="py-3 px-4 text-right text-destructive">
                         {absentDays}
                       </td>
                       <td className="py-3 px-4 text-right text-green-600 font-semibold">
-                        ₱{wage.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        ₱
+                        {wage.toLocaleString("en-PH", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </td>
                       <td className="py-3 px-4 text-right text-yellow-600 font-semibold">
-                        ₱{debt.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        ₱
+                        {debt.toLocaleString("en-PH", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </td>
                     </tr>
                   )
@@ -410,10 +475,6 @@ export default function EmployeeSummaryTab({
             </table>
           </div>
         </Card>
-
-        <p className="text-xs text-muted-foreground text-right">
-          Generated on: {new Date().toLocaleString()}
-        </p>
       </div>
     </div>
   );

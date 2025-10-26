@@ -38,7 +38,7 @@ export default function TravelNetIncomePerDestinationChart() {
         0
       );
 
-    //   const totalExpenses = groupWages + otherExpenses + driverWage;
+      // const totalExpenses = groupWages + otherExpenses + driverWage;
       const totalExpenses = groupWages + otherExpenses;
       const netIncome = totalIncome - totalExpenses;
 
@@ -59,8 +59,8 @@ export default function TravelNetIncomePerDestinationChart() {
   }, [travels, destinations, groups, drivers]);
 
   const colors = [
-    "#2563EB", // blue
     "#10B981", // green
+    "#2563EB", // blue
     "#F59E0B", // amber
     "#EF4444", // red
     "#8B5CF6", // violet

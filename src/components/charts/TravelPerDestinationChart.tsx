@@ -42,8 +42,8 @@ export default function TravelPerDestinationChart() {
 
     // 🎨 Darker, consistent color palette
     const colors = [
-        "#6388ecff", // dark blue
         "#35a79dff", // teal
+        "#6388ecff", // dark blue
         "#db4beeff", // brownish-orange
         "#e95353ff", // indigo
         "#9D174D", // dark magenta
