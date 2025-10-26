@@ -19,19 +19,12 @@ export default function Debts() {
   const [editingDebt, setEditingDebt] = useState<Debt | null>(null);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // ✅ Get correct local date string
-  const getLocalISODate = () =>
-    new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
-      .toISOString()
-      .split('T')[0];
-
-  const [formData, setFormData] = useState({
-    employeeId: '',
-    amount: 0,
-    description: '',
-    date: getLocalISODate(),
-    paid: false,
+  const [formData, setFormData] = useState({ 
+    employeeId: '', 
+    amount: 0, 
+    description: '', 
+    date: new Date().toISOString().split('T')[0],
+    paid: false
   });
 
   useEffect(() => {
@@ -48,13 +41,19 @@ export default function Debts() {
   const fetchEmployees = async () => {
     const querySnapshot = await getDocs(collection(db, 'employees'));
     const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Employee));
+
+    // ✅ Sort alphabetically by name (case-insensitive)
     const sorted = data.sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
+
     setEmployees(sorted);
   };
 
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (isSubmitting) return;
+    
     setIsSubmitting(true);
     try {
       if (editingDebt) {
@@ -66,13 +65,7 @@ export default function Debts() {
       }
       await fetchDebts();
       setEditingDebt(null);
-      setFormData({
-        employeeId: '',
-        amount: 0,
-        description: '',
-        date: getLocalISODate(), // ✅ use fixed date
-        paid: false,
-      });
+      setFormData({ employeeId: '', amount: 0, description: '', date: new Date().toISOString().split('T')[0], paid: false });
       setIsDialogOpen(false);
     } catch (error) {
       toast.error('Operation failed');
@@ -93,15 +86,16 @@ export default function Debts() {
   };
 
   const handleMarkAsPaid = async (debt: Debt) => {
-    const t = toast.loading('Marking as paid...');
-    try {
-      await updateDoc(doc(db, 'debts', debt.id), { paid: true });
-      toast.success('Debt marked as paid', { id: t });
-      fetchDebts();
-    } catch {
-      toast.error('Failed to mark as paid', { id: t });
-    }
-  };
+  const t = toast.loading('Marking as paid...');
+  try {
+    await updateDoc(doc(db, 'debts', debt.id), { paid: true });
+    toast.success('Debt marked as paid', { id: t });
+    fetchDebts();
+  } catch {
+    toast.error('Failed to mark as paid', { id: t });
+  }
+};
+
 
   const getEmployeeDebts = (employeeId: string) => debts.filter(d => d.employeeId === employeeId);
   const getEmployeeTotalDebt = (employeeId: string) =>
@@ -154,7 +148,7 @@ export default function Debts() {
                           employeeId: employee.id,
                           amount: 0,
                           description: '',
-                          date: getLocalISODate(), // ✅ fixed
+                          date: new Date().toISOString().split('T')[0],
                           paid: false,
                         });
                         setIsDialogOpen(true);
@@ -162,6 +156,8 @@ export default function Debts() {
                     >
                       <Plus className="w-4 h-4" />
                     </Button>
+
+                    
                   </td>
                 </tr>
               ))}
@@ -169,6 +165,7 @@ export default function Debts() {
           </table>
         </div>
       </Card>
+
 
       {/* Add/Edit Debt Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -288,7 +285,7 @@ export default function Debts() {
                                 amount: debt.amount,
                                 description: debt.description,
                                 date: debt.date,
-                                paid: debt.paid,
+                                paid: debt.paid
                               });
                               setIsDialogOpen(true);
                             }}
@@ -323,3 +320,6 @@ export default function Debts() {
     </div>
   );
 }
+
+
+
