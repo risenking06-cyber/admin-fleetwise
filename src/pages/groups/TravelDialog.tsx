@@ -71,6 +71,7 @@ export default function TravelDialog({
   };
 
   const [form, setForm] = React.useState<TravelFormData>(defaultForm);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   React.useEffect(() => {
     if (editingTravel) {
@@ -120,7 +121,15 @@ export default function TravelDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onSubmit(form);
+    
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
+    try {
+      await onSubmit(form);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // ✅ Sort data alphabetically for clean dropdowns
@@ -353,8 +362,8 @@ export default function TravelDialog({
             </div>
           </div>
 
-          <Button type="submit" className="w-full">
-            {editingTravel ? 'Update' : 'Create'}
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? 'Processing...' : editingTravel ? 'Update' : 'Create'}
           </Button>
         </form>
       </DialogContent>

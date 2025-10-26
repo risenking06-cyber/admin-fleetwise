@@ -69,9 +69,9 @@ export default function GroupsPage(): JSX.Element {
         await addDoc(collection(db, 'groups'), data);
         toast.success('Group added successfully');
       }
+      await refetch();
       setIsGroupDialogOpen(false);
       setEditingGroup(null);
-      await refetch();
     } catch (err) {
       console.error(err);
       toast.error('Operation failed');
@@ -123,10 +123,10 @@ export default function GroupsPage(): JSX.Element {
         toast.success('Travel added successfully');
       }
 
+      await refetch();
       setIsTravelDialogOpen(false);
       setEditingTravel(null);
       setSelectedGroupForTravel(null);
-      await refetch();
     } catch (err) {
       console.error(err);
       toast.error('Operation failed');
