@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { collection, getDocs, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Employee, Group, Travel, Debt, Land, Plate, Destination, Driver } from '@/types';
+import { sortByName, sortGroups } from '@/utils/sorting';
 
 interface DataContextType {
   employees: Employee[];
@@ -52,46 +53,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
         getDocs(collection(db, 'drivers')),
       ]);
 
-      // Sort groups descending
-      const groupsData = groupsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Group));
-      const sortedGroups = groupsData.sort((a, b) => {
-        const numA = parseInt(a.name.match(/\d+/)?.[0] || '0', 10);
-        const numB = parseInt(b.name.match(/\d+/)?.[0] || '0', 10);
-        if (!isNaN(numA) && !isNaN(numB) && numA !== numB) return numB - numA;
-        return b.name.localeCompare(a.name, 'en', { sensitivity: 'base' });
-      });
-
-      // Sort employees alphabetically
-      const employeesData = employeesSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Employee));
-      const sortedEmployees = employeesData.sort((a, b) => 
-        a.name.localeCompare(b.name, 'en', { sensitivity: 'base' })
-      );
-
-      // Sort lands alphabetically
-      const landsData = landsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Land));
-      const sortedLands = landsData.sort((a, b) => 
-        a.name.localeCompare(b.name, 'en', { sensitivity: 'base' })
-      );
-
-      // Sort plates alphabetically
-      const platesData = platesSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Plate));
-      const sortedPlates = platesData.sort((a, b) => 
-        a.name.localeCompare(b.name, 'en', { sensitivity: 'base' })
-      );
-
-      // Sort destinations alphabetically
-      const destinationsData = destinationsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Destination));
-      const sortedDestinations = destinationsData.sort((a, b) => 
-        a.name.localeCompare(b.name, 'en', { sensitivity: 'base' })
-      );
-
-      setEmployees(sortedEmployees);
-      setGroups(sortedGroups);
+      setEmployees(sortByName(employeesSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Employee))));
+      setGroups(sortGroups(groupsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Group))));
       setTravels(travelsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Travel)));
       setDebts(debtsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Debt)));
-      setLands(sortedLands);
-      setPlates(sortedPlates);
-      setDestinations(sortedDestinations);
+      setLands(sortByName(landsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Land))));
+      setPlates(sortByName(platesSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Plate))));
+      setDestinations(sortByName(destinationsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Destination))));
       setDrivers(driversSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Driver)));
     } catch (error) {
       console.error('Failed to fetch data:', error);
@@ -103,16 +71,37 @@ export function DataProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     fetchAllData();
 
-    // Set up real-time listeners for instant updates
+    // Optimized real-time listeners - update only affected collections
     const unsubscribers = [
-      onSnapshot(collection(db, 'employees'), () => fetchAllData()),
-      onSnapshot(collection(db, 'groups'), () => fetchAllData()),
-      onSnapshot(collection(db, 'travels'), () => fetchAllData()),
-      onSnapshot(collection(db, 'debts'), () => fetchAllData()),
-      onSnapshot(collection(db, 'lands'), () => fetchAllData()),
-      onSnapshot(collection(db, 'plates'), () => fetchAllData()),
-      onSnapshot(collection(db, 'destinations'), () => fetchAllData()),
-      onSnapshot(collection(db, 'drivers'), () => fetchAllData()),
+      onSnapshot(collection(db, 'employees'), (snapshot) => {
+        const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Employee));
+        setEmployees(sortByName(data));
+      }),
+      onSnapshot(collection(db, 'groups'), (snapshot) => {
+        const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Group));
+        setGroups(sortGroups(data));
+      }),
+      onSnapshot(collection(db, 'travels'), (snapshot) => {
+        setTravels(snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Travel)));
+      }),
+      onSnapshot(collection(db, 'debts'), (snapshot) => {
+        setDebts(snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Debt)));
+      }),
+      onSnapshot(collection(db, 'lands'), (snapshot) => {
+        const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Land));
+        setLands(sortByName(data));
+      }),
+      onSnapshot(collection(db, 'plates'), (snapshot) => {
+        const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Plate));
+        setPlates(sortByName(data));
+      }),
+      onSnapshot(collection(db, 'destinations'), (snapshot) => {
+        const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Destination));
+        setDestinations(sortByName(data));
+      }),
+      onSnapshot(collection(db, 'drivers'), (snapshot) => {
+        setDrivers(snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Driver)));
+      }),
     ];
 
     return () => unsubscribers.forEach((unsub) => unsub());
