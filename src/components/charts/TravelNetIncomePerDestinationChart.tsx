@@ -38,6 +38,7 @@ export default function TravelNetIncomePerDestinationChart() {
         0
       );
 
+    //   const totalExpenses = groupWages + otherExpenses + driverWage;
       const totalExpenses = groupWages + otherExpenses;
       const netIncome = totalIncome - totalExpenses;
 
