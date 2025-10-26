@@ -46,6 +46,11 @@ export default function GroupSummaryTab({
     selectedGroupId === "all"
       ? travels
       : getGroupTravels(selectedGroupId, travels);
+    
+    // ✅ Sort newest to oldest by date
+    const sortedTravels = [...filteredTravels].sort(
+      (a, b) => new Date(b.name).getTime() - new Date(a.name).getTime()
+    );
 
   const calculateIncome = (travel: Travel) => {
     const sugarIncome = (travel.sugarcane_price || 0) * (travel.bags || 0);
@@ -53,10 +58,10 @@ export default function GroupSummaryTab({
     return sugarIncome + molassesIncome;
   };
 
-  const totalTravels = filteredTravels.length;
-  const totalTons = filteredTravels.reduce((sum, t) => sum + (t.tons || 0), 0);
-  const totalIncome = filteredTravels.reduce((sum, t) => sum + calculateIncome(t), 0);
-  const totalExpenses = filteredTravels.reduce(
+  const totalTravels = sortedTravels.length;
+  const totalTons = sortedTravels.reduce((sum, t) => sum + (t.tons || 0), 0);
+  const totalIncome = sortedTravels.reduce((sum, t) => sum + calculateIncome(t), 0);
+  const totalExpenses = sortedTravels.reduce(
     (sum, t) => sum + calculateTravelExpenses(t, groups),
     0
   );
@@ -64,8 +69,8 @@ export default function GroupSummaryTab({
 
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
-  const currentTravels = filteredTravels.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(filteredTravels.length / itemsPerPage);
+  const currentTravels = sortedTravels.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(sortedTravels.length / itemsPerPage);
 
   // 🖼️ Download Image (A4 Portrait)
   const handleDownloadImage = async () => {

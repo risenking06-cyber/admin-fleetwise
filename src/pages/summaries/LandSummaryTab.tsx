@@ -70,7 +70,7 @@ export default function LandSummaryTab({
     if (selectedDriver !== "all" && travel.driver !== selectedDriver) return false;
     return true;
   })
-  .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" }));
+  .sort((a, b) => new Date(b.name).getTime() - new Date(a.name).getTime());
 
   // Totals
   const totalTons = filteredTravels.reduce((sum, t) => sum + (t.tons || 0), 0);
