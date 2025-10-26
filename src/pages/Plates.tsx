@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import ConfirmDialog from '@/components/ConfirmDialog';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Plate } from '@/types';
@@ -16,6 +17,8 @@ export default function Plates() {
   const [editingPlate, setEditingPlate] = useState<Plate | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ name: '' });
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [plateToDelete, setPlateToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPlates();
@@ -56,12 +59,13 @@ export default function Plates() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure?')) {
-      await deleteDoc(doc(db, 'plates', id));
-      toast.success('Plate deleted successfully');
-      fetchPlates();
-    }
+  const handleDelete = async () => {
+    if (!plateToDelete) return;
+    await deleteDoc(doc(db, 'plates', plateToDelete));
+    toast.success('Plate deleted successfully');
+    fetchPlates();
+    setDeleteConfirmOpen(false);
+    setPlateToDelete(null);
   };
 
   return (
@@ -117,7 +121,14 @@ export default function Plates() {
                     <Button variant="secondary" size="sm" onClick={() => { setEditingPlate(plate); setFormData({ name: plate.name }); setIsDialogOpen(true); }}>
                       <Edit className="w-4 h-4" />
                     </Button>
-                    <Button variant="destructive" size="sm" onClick={() => handleDelete(plate.id)}>
+                    <Button 
+                      variant="destructive" 
+                      size="sm" 
+                      onClick={() => {
+                        setPlateToDelete(plate.id);
+                        setDeleteConfirmOpen(true);
+                      }}
+                    >
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
@@ -127,6 +138,15 @@ export default function Plates() {
           </tbody>
         </table>
       </Card>
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        onConfirm={handleDelete}
+        title="Delete Plate"
+        description="Are you sure you want to delete this plate number? This action cannot be undone."
+        confirmText="Delete"
+      />
     </div>
   );
 }

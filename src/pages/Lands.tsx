@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import ConfirmDialog from '@/components/ConfirmDialog';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Land } from '@/types';
@@ -16,6 +17,8 @@ export default function Lands() {
   const [editingLand, setEditingLand] = useState<Land | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ name: '' });
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [landToDelete, setLandToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     fetchLands();
@@ -57,12 +60,13 @@ export default function Lands() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure?')) {
-      await deleteDoc(doc(db, 'lands', id));
-      toast.success('Land deleted successfully');
-      fetchLands();
-    }
+  const handleDelete = async () => {
+    if (!landToDelete) return;
+    await deleteDoc(doc(db, 'lands', landToDelete));
+    toast.success('Land deleted successfully');
+    fetchLands();
+    setDeleteConfirmOpen(false);
+    setLandToDelete(null);
   };
 
   return (
@@ -118,7 +122,14 @@ export default function Lands() {
                     <Button variant="secondary" size="sm" onClick={() => { setEditingLand(land); setFormData({ name: land.name }); setIsDialogOpen(true); }}>
                       <Edit className="w-4 h-4" />
                     </Button>
-                    <Button variant="destructive" size="sm" onClick={() => handleDelete(land.id)}>
+                    <Button 
+                      variant="destructive" 
+                      size="sm" 
+                      onClick={() => {
+                        setLandToDelete(land.id);
+                        setDeleteConfirmOpen(true);
+                      }}
+                    >
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
@@ -128,6 +139,15 @@ export default function Lands() {
           </tbody>
         </table>
       </Card>
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        onConfirm={handleDelete}
+        title="Delete Land"
+        description="Are you sure you want to delete this land? This action cannot be undone."
+        confirmText="Delete"
+      />
     </div>
   );
 }

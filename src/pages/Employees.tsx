@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useState } from 'react';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 export default function Employees() {
   const { employees, loading, refetch } = useData();
@@ -26,6 +27,8 @@ export default function Employees() {
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ name: '', type: '' });
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [employeeToDelete, setEmployeeToDelete] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,16 +55,17 @@ export default function Employees() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this employee?')) {
-      try {
-        await deleteDoc(doc(db, 'employees', id));
-        toast.success('Employee deleted successfully');
-        await refetch();
-      } catch (error) {
-        toast.error('Failed to delete employee');
-      }
+  const handleDelete = async () => {
+    if (!employeeToDelete) return;
+    try {
+      await deleteDoc(doc(db, 'employees', employeeToDelete));
+      toast.success('Employee deleted successfully');
+      await refetch();
+    } catch (error) {
+      toast.error('Failed to delete employee');
     }
+    setDeleteConfirmOpen(false);
+    setEmployeeToDelete(null);
   };
 
   const handleEdit = (employee: Employee) => {
@@ -184,7 +188,15 @@ export default function Employees() {
                       <Button variant="secondary" size="sm" onClick={() => handleEdit(employee)} className="h-8 w-8 md:h-9 md:w-9 p-0">
                         <Edit className="w-3 h-3 md:w-4 md:h-4" />
                       </Button>
-                      <Button variant="destructive" size="sm" onClick={() => handleDelete(employee.id)} className="h-8 w-8 md:h-9 md:w-9 p-0">
+                      <Button 
+                        variant="destructive" 
+                        size="sm" 
+                        onClick={() => {
+                          setEmployeeToDelete(employee.id);
+                          setDeleteConfirmOpen(true);
+                        }} 
+                        className="h-8 w-8 md:h-9 md:w-9 p-0"
+                      >
                         <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
                       </Button>
                     </div>
@@ -195,6 +207,15 @@ export default function Employees() {
           </table>
         </div>
       </Card>
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        onConfirm={handleDelete}
+        title="Delete Employee"
+        description="Are you sure you want to delete this employee? This action cannot be undone."
+        confirmText="Delete"
+      />
     </div>
   );
 }

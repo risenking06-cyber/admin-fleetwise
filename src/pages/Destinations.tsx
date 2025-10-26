@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import ConfirmDialog from '@/components/ConfirmDialog';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Destination } from '@/types';
@@ -16,6 +17,8 @@ export default function Destinations() {
   const [editingDestination, setEditingDestination] = useState<Destination | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ name: '' });
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [destinationToDelete, setDestinationToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDestinations();
@@ -53,12 +56,13 @@ export default function Destinations() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure?')) {
-      await deleteDoc(doc(db, 'destinations', id));
-      toast.success('Destination deleted successfully');
-      fetchDestinations();
-    }
+  const handleDelete = async () => {
+    if (!destinationToDelete) return;
+    await deleteDoc(doc(db, 'destinations', destinationToDelete));
+    toast.success('Destination deleted successfully');
+    fetchDestinations();
+    setDeleteConfirmOpen(false);
+    setDestinationToDelete(null);
   };
 
   return (
@@ -114,7 +118,14 @@ export default function Destinations() {
                     <Button variant="secondary" size="sm" onClick={() => { setEditingDestination(destination); setFormData({ name: destination.name }); setIsDialogOpen(true); }}>
                       <Edit className="w-4 h-4" />
                     </Button>
-                    <Button variant="destructive" size="sm" onClick={() => handleDelete(destination.id)}>
+                    <Button 
+                      variant="destructive" 
+                      size="sm" 
+                      onClick={() => {
+                        setDestinationToDelete(destination.id);
+                        setDeleteConfirmOpen(true);
+                      }}
+                    >
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
@@ -124,6 +135,15 @@ export default function Destinations() {
           </tbody>
         </table>
       </Card>
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        onConfirm={handleDelete}
+        title="Delete Destination"
+        description="Are you sure you want to delete this destination? This action cannot be undone."
+        confirmText="Delete"
+      />
     </div>
   );
 }

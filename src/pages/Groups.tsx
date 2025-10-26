@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ConfirmDialog from '@/components/ConfirmDialog';
 import { addDoc, updateDoc, deleteDoc, doc, collection } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useData } from '@/contexts/DataContext';
@@ -36,6 +37,12 @@ export default function GroupsPage(): JSX.Element {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const groupsPerPage = 5;
+
+  // Delete confirmation state
+  const [deleteGroupConfirmOpen, setDeleteGroupConfirmOpen] = useState(false);
+  const [groupToDelete, setGroupToDelete] = useState<string | null>(null);
+  const [deleteTravelConfirmOpen, setDeleteTravelConfirmOpen] = useState(false);
+  const [travelToDelete, setTravelToDelete] = useState<string | null>(null);
 
   // Pagination logic
   const indexOfLast = currentPage * groupsPerPage;
@@ -78,16 +85,18 @@ export default function GroupsPage(): JSX.Element {
     }
   };
 
-  const handleDeleteGroup = async (id: string) => {
-    if (!confirm('Are you sure?')) return;
+  const handleDeleteGroup = async () => {
+    if (!groupToDelete) return;
     try {
-      await deleteDoc(doc(db, 'groups', id));
+      await deleteDoc(doc(db, 'groups', groupToDelete));
       toast.success('Group deleted successfully');
       await refetch();
     } catch (err) {
       console.error(err);
       toast.error('Failed to delete group');
     }
+    setDeleteGroupConfirmOpen(false);
+    setGroupToDelete(null);
   };
 
   // Travel handlers
@@ -133,16 +142,18 @@ export default function GroupsPage(): JSX.Element {
     }
   };
 
-  const handleDeleteTravel = async (id: string) => {
-    if (!confirm('Are you sure?')) return;
+  const handleDeleteTravel = async () => {
+    if (!travelToDelete) return;
     try {
-      await deleteDoc(doc(db, 'travels', id));
+      await deleteDoc(doc(db, 'travels', travelToDelete));
       toast.success('Travel deleted successfully');
       await refetch();
     } catch (err) {
       console.error(err);
       toast.error('Failed to delete travel');
     }
+    setDeleteTravelConfirmOpen(false);
+    setTravelToDelete(null);
   };
 
   // View dialogs
@@ -219,7 +230,15 @@ export default function GroupsPage(): JSX.Element {
                       <Button variant="secondary" size="sm" onClick={() => handleViewSummary(group)} className="h-8 w-8 md:h-9 md:w-9 p-0">
                         <BarChart3 className="w-3 h-3 md:w-4 md:h-4" />
                       </Button>
-                      <Button variant="destructive" size="sm" onClick={() => handleDeleteGroup(group.id)} className="h-8 w-8 md:h-9 md:w-9 p-0">
+                      <Button 
+                        variant="destructive" 
+                        size="sm" 
+                        onClick={() => {
+                          setGroupToDelete(group.id);
+                          setDeleteGroupConfirmOpen(true);
+                        }} 
+                        className="h-8 w-8 md:h-9 md:w-9 p-0"
+                      >
                         <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
                       </Button>
                     </div>
@@ -307,7 +326,10 @@ export default function GroupsPage(): JSX.Element {
           handleEditTravel(t);
           setIsGroupTravelsOpen(false);
         }}
-        onDeleteTravel={handleDeleteTravel}
+        onDeleteTravel={async (id) => {
+          setTravelToDelete(id);
+          setDeleteTravelConfirmOpen(true);
+        }}
       />
 
       <SummaryDialog
@@ -322,6 +344,24 @@ export default function GroupsPage(): JSX.Element {
         debts={debts}
         plates={plates}
         destinations={destinations}
+      />
+
+      <ConfirmDialog
+        open={deleteGroupConfirmOpen}
+        onOpenChange={setDeleteGroupConfirmOpen}
+        onConfirm={handleDeleteGroup}
+        title="Delete Group"
+        description="Are you sure you want to delete this group? This action cannot be undone."
+        confirmText="Delete"
+      />
+
+      <ConfirmDialog
+        open={deleteTravelConfirmOpen}
+        onOpenChange={setDeleteTravelConfirmOpen}
+        onConfirm={handleDeleteTravel}
+        title="Delete Travel"
+        description="Are you sure you want to delete this travel record? This action cannot be undone."
+        confirmText="Delete"
       />
     </div>
   );

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import ConfirmDialog from '@/components/ConfirmDialog';
 import {
   collection,
   addDoc,
@@ -46,6 +47,8 @@ export default function Drivers() {
   const [driverTravels, setDriverTravels] = useState<Travel[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [driverToDelete, setDriverToDelete] = useState<string | null>(null);
 
   const travelsPerPage = 5;
 
@@ -169,12 +172,13 @@ export default function Drivers() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure?')) {
-      await deleteDoc(doc(db, 'drivers', id));
-      toast.success('Driver removed successfully');
-      fetchDrivers();
-    }
+  const handleDelete = async () => {
+    if (!driverToDelete) return;
+    await deleteDoc(doc(db, 'drivers', driverToDelete));
+    toast.success('Driver removed successfully');
+    fetchDrivers();
+    setDeleteConfirmOpen(false);
+    setDriverToDelete(null);
   };
 
   const handleViewDriver = async (driver: Driver) => {
@@ -330,7 +334,10 @@ export default function Drivers() {
                     <Button
                       variant="destructive"
                       size="sm"
-                      onClick={() => handleDelete(driver.id)}
+                      onClick={() => {
+                        setDriverToDelete(driver.id);
+                        setDeleteConfirmOpen(true);
+                      }}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -433,6 +440,15 @@ export default function Drivers() {
           )}
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        onConfirm={handleDelete}
+        title="Delete Driver"
+        description="Are you sure you want to remove this driver? This action cannot be undone."
+        confirmText="Delete"
+      />
     </div>
   );
 }
