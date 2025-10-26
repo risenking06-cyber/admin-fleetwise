@@ -138,7 +138,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
         <Bar
             dataKey="income"
-            name="Total Income "
+            name="Income "
             fill="url(#incomeGradient)"
             radius={[10, 10, 10, 10]}
             animationDuration={800}
@@ -146,7 +146,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
             <Bar
             dataKey="debts"
-            name="Total Debts "
+            name="Debts "
             fill="url(#debtGradient)"
             radius={[10, 10, 10, 10]}
             animationDuration={800}

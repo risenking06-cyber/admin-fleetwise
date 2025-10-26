@@ -8,6 +8,8 @@ import { StatsLoadingState } from '@/components/LoadingState';
 import FinancialPieChart from '@/components/charts/FinancialPieChart';
 import EmployeeIncomeDebtChart from '@/components/charts/EmployeeIncomeDebtChart';
 import TravelPerDestinationChart from '@/components/charts/TravelPerDestinationChart';
+import TravelNetIncomePerDestinationChart from '@/components/charts/TravelNetIncomePerDestinationChart';
+import TravelMolassesPriceChart from '@/components/charts/TravelMolassesPriceChart';
 import { calculateEmployeeWage } from './groups/utils';
 import type { Driver } from '@/types';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -230,7 +232,7 @@ export default function Dashboard() {
           />
         </Card>
         <Card className="p-6">
-          <h2 className="text-lg font-semibold mb-4">Employee Income vs Total Debts</h2>
+          <h2 className="text-lg font-semibold mb-4">Employee Income vs Employee Debts</h2>
           {/* Pass drivers as prop so chart computes properly */}
           <EmployeeIncomeDebtChart drivers={drivers} />
         </Card>
@@ -239,8 +241,27 @@ export default function Dashboard() {
       {/* 🟨 Row 3 – Charts */}
       <div className="grid grid-cols-1 gap-6">
         <Card className="p-6">
-          <h2 className="text-lg font-semibold mb-4">Sugarcane Price</h2>
-          <TravelPerDestinationChart />
+          <h2 className="text-lg font-semibold mb-4">Travel Analytics</h2>
+
+          <Tabs defaultValue="price" className="w-full">
+            <TabsList className="grid grid-cols-3 w-[450px] mx-auto mb-6">
+              <TabsTrigger value="price">Sugarcane Price</TabsTrigger>
+              <TabsTrigger value="molasses">Molasses Price</TabsTrigger>
+              <TabsTrigger value="net">Net Income</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="price">
+              <TravelPerDestinationChart />
+            </TabsContent>
+            <TabsContent value="molasses">
+              <TravelMolassesPriceChart />
+            </TabsContent>
+            <TabsContent value="net">
+              <TravelNetIncomePerDestinationChart />
+            </TabsContent>
+
+
+          </Tabs>
         </Card>
       </div>
     </div>

@@ -69,7 +69,8 @@ export default function LandSummaryTab({
     if (selectedPlate !== "all" && travel.plateNumber !== selectedPlate) return false;
     if (selectedDriver !== "all" && travel.driver !== selectedDriver) return false;
     return true;
-  });
+  })
+  .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" }));
 
   // Totals
   const totalTons = filteredTravels.reduce((sum, t) => sum + (t.tons || 0), 0);
