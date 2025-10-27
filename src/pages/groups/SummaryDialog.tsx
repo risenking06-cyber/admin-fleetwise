@@ -328,11 +328,11 @@ export default function SummaryDialog({
                             <p className="text-xs text-muted-foreground mt-1">Weight: {travel.tons} tons</p>
                             <p className="text-xs text-muted-foreground mt-1">
                               Sugarcane Income: {travel.bags} * {travel.sugarcane_price} ={' '}
-                              <span className="text-green-600">{(travel.bags || 0) * (travel.sugarcane_price || 0)}</span>
+                              <span className="text-green-600">₱{((travel.bags || 0) * (travel.sugarcane_price || 0)).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </p>
                             <p className="text-xs text-muted-foreground mt-1">
                               Molasses Income: {travel.molasses} * {travel.molasses_price} ={' '}
-                              <span className="text-green-600">{(travel.molasses || 0) * (travel.molasses_price || 0)}</span>
+                              <span className="text-green-600">₱{((travel.molasses || 0) * (travel.molasses_price || 0)).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </p>
                             <p className="text-xs text-muted-foreground mt-1">
                               Driver: {driverInfo.name} ={' '}

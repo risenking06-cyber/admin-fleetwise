@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { DashboardLayout } from "./components/layout/DashboardLayout";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { DataProvider } from "@/contexts/DataContext";
@@ -12,7 +12,6 @@ import Employees from "./pages/Employees";
 import Groups from "./pages/Groups";
 import Drivers from "./pages/Drivers";
 import Debts from "./pages/Debts";
-import OtherExpenses from "./pages/OtherExpenseses";
 import Lands from "./pages/Lands";
 import Plates from "./pages/Plates";
 import Destinations from "./pages/Destinations";
@@ -55,7 +54,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      <HashRouter>
         <AuthProvider>
           <DataProvider>
             <Routes>
@@ -89,11 +88,6 @@ const App = () => (
                 <DashboardLayout><Debts /></DashboardLayout>
               </ProtectedRoute>
             } />
-             <Route path="/expenses" element={
-              <ProtectedRoute>
-                <DashboardLayout><OtherExpenses /></DashboardLayout>
-              </ProtectedRoute>
-            } />
             <Route path="/lands" element={
               <ProtectedRoute>
                 <DashboardLayout><Lands /></DashboardLayout>
@@ -124,7 +118,7 @@ const App = () => (
           </Routes>
           </DataProvider>
         </AuthProvider>
-      </BrowserRouter>
+      </HashRouter>
     </TooltipProvider>
   </QueryClientProvider>
 );
