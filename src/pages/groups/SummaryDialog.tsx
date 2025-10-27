@@ -306,7 +306,7 @@ export default function SummaryDialog({
                               <span className="text-green-600">{(travel.molasses || 0) * (travel.molasses_price || 0)}</span>
                             </p>
                             <p className="text-xs text-muted-foreground mt-1">
-                              Driver: {driverInfo.name} –{' '}
+                              Driver: {driverInfo.name} ={' '}
                               <span className="text-red-600">₱{driverInfo.wage.toLocaleString('en-PH')}</span>
                             </p>
                             <p className="text-xs text-muted-foreground mt-1">Plate: {getPlateName(travel.plateNumber)}</p>
