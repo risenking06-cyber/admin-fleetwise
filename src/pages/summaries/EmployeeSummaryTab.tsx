@@ -1,5 +1,5 @@
 import React, { useMemo, useRef } from "react";
-import { Employee, Group, Travel, Debt } from "@/types";
+import { Employee, Group, Travel, Debt, Driver } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
@@ -25,6 +25,7 @@ interface EmployeeSummaryTabProps {
   groups: Group[];
   travels: Travel[];
   debts: Debt[];
+  drivers: Driver[];
   selectedGroupId: string;
   onGroupChange: (value: string) => void;
 }
@@ -34,6 +35,7 @@ export default function EmployeeSummaryTab({
   groups,
   travels,
   debts,
+  drivers,
   selectedGroupId,
   onGroupChange,
 }: EmployeeSummaryTabProps) {
@@ -71,6 +73,26 @@ export default function EmployeeSummaryTab({
     return employees.filter((emp) => group.employees.includes(emp.id));
   }, [selectedGroupId, employees, groups]);
 
+  const filteredDrivers = useMemo(() => {
+    if (selectedGroupId === "all") {
+      // Return all unique drivers that exist in travels
+      const driverIds = Array.from(new Set(travels.map((t) => t.driver)));
+      return drivers.filter((drv) => driverIds.includes(drv.employeeId));
+    }
+
+    // Get only travels for the selected group
+    const groupTravels = travels.filter((t) => t.groupId === selectedGroupId);
+
+    // Get unique driver employeeIds from those travels
+    const driverIds = Array.from(new Set(groupTravels.map((t) => t.driver)));
+
+    // Filter drivers based on matching employeeId
+    return drivers.filter((drv) => driverIds.includes(drv.employeeId));
+  }, [selectedGroupId, travels, drivers]);
+
+
+  console.log(filteredDrivers);
+
   // 🟩 CHANGE STARTS HERE -------------------------
   // Exclude drivers from employee summary table
   // We gather all employee IDs who acted as driver in any travel.
@@ -84,47 +106,101 @@ export default function EmployeeSummaryTab({
   // 🟩 CHANGE ENDS HERE ---------------------------
 
   const employeeStats = useMemo(() => {
-    const sortedEmployees = [...filteredEmployees]
-      // 🟩 CHANGE HERE: exclude all drivers
+    // 🟩 1. Regular employees (non-drivers)
+    const nonDriverEmployees = [...filteredEmployees]
       .filter((emp) => !driverIds.has(emp.id))
       .sort((a, b) =>
         a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
-      );
+      )
+      .map((emp) => {
+        const empTravels = getEmployeeTravels(
+          emp.id,
+          selectedGroupId === "all" ? null : selectedGroupId,
+          travels
+        );
 
-    return sortedEmployees.map((emp) => {
-      const empTravels = getEmployeeTravels(
-        emp.id,
-        selectedGroupId === "all" ? null : selectedGroupId,
-        travels
-      );
+        const empDateKeys = new Set<string>();
+        for (const t of empTravels) {
+          const key = parseDateKey(t.name);
+          if (key) empDateKeys.add(key);
+        }
 
-      const empDateKeys = new Set<string>();
-      for (const t of empTravels) {
-        const key = parseDateKey(t.name);
-        if (key) empDateKeys.add(key);
-      }
+        const daysWorked = empDateKeys.size;
+        const wage = getEmployeeTotalWage(
+          emp.id,
+          selectedGroupId === "all" ? null : selectedGroupId,
+          travels,
+          groups
+        );
+        const debt = getEmployeeTotalDebts(emp.id, debts);
+        const absentDays = Math.max(0, totalWorkingDays - daysWorked);
 
-      const daysWorked = empDateKeys.size;
-      const wage = getEmployeeTotalWage(
-        emp.id,
-        selectedGroupId === "all" ? null : selectedGroupId,
-        travels,
-        groups
-      );
-      const debt = getEmployeeTotalDebts(emp.id, debts);
-      const absentDays = Math.max(0, totalWorkingDays - daysWorked);
+        return {
+          employee: emp,
+          daysWorked,
+          absentDays,
+          wage,
+          debt,
+        };
+      });
 
-      return { employee: emp, daysWorked, absentDays, wage, debt };
-    });
+    // 🟩 2. Drivers (based on filteredDrivers)
+    const driverStats = filteredDrivers
+      .map((drv) => {
+        const emp = employees.find((e) => e.id === drv.employeeId);
+        if (!emp) return null; // skip if no matching employee found
+
+        // Find travels this driver handled
+        const relevantTravelsForDriver = relevantTravels.filter(
+          (t) => t.driver === drv.employeeId
+        );
+
+        // Compute number of days they drove
+        const driverDateKeys = new Set<string>();
+        for (const t of relevantTravelsForDriver) {
+          const key = parseDateKey(t.name);
+          if (key) driverDateKeys.add(key);
+        }
+
+        const daysWorked = driverDateKeys.size;
+        const wage = (drv.wage || 0) * daysWorked;
+        const debt = getEmployeeTotalDebts(drv.employeeId, debts);
+        const absentDays = Math.max(0, totalWorkingDays - daysWorked);
+
+        return {
+          employee: {
+            ...emp,
+            name: emp.name + " (Driver)",
+          },
+          daysWorked,
+          absentDays,
+          wage,
+          debt,
+        };
+      })
+      .filter(Boolean);
+
+    // 🟩 3. Combine both
+    const allStats = [...nonDriverEmployees, ...driverStats].sort((a, b) =>
+      a.employee.name.localeCompare(b.employee.name, undefined, {
+        sensitivity: "base",
+      })
+    );
+
+    return allStats;
   }, [
     filteredEmployees,
+    filteredDrivers,
     selectedGroupId,
     travels,
     groups,
     debts,
     totalWorkingDays,
-    driverIds, // 🟩 include this dependency for reactivity
+    driverIds,
+    employees,
+    relevantTravels,
   ]);
+
 
   const totalDaysWorked = employeeStats.reduce((s, st) => s + st.daysWorked, 0);
   const totalWage = employeeStats.reduce((s, st) => s + st.wage, 0);
@@ -153,9 +229,8 @@ export default function EmployeeSummaryTab({
     const title =
       selectedGroupId === "all"
         ? "Employee Summary - All Groups"
-        : `Employee Summary - ${
-            groups.find((g) => g.id === selectedGroupId)?.name || ""
-          }`;
+        : `Employee Summary - ${groups.find((g) => g.id === selectedGroupId)?.name || ""
+        }`;
     doc.text(title, pageWidth / 2, 13, { align: "center" });
 
     // 🧾 SUMMARY
@@ -246,9 +321,8 @@ export default function EmployeeSummaryTab({
     title.innerText =
       selectedGroupId === "all"
         ? "Employee Summary - All Groups"
-        : `Employee Summary - ${
-            groups.find((g) => g.id === selectedGroupId)?.name || ""
-          }`;
+        : `Employee Summary - ${groups.find((g) => g.id === selectedGroupId)?.name || ""
+        }`;
     title.style.textAlign = "center";
     title.style.color = "#1e3a8a";
     title.style.fontSize = "20px";
@@ -268,16 +342,16 @@ export default function EmployeeSummaryTab({
       <div style="background:#ecfdf5;padding:16px;border-radius:10px;text-align:center">
         <div style="color:#64748b;font-size:13px;">Total Wage</div>
         <div style="color:#047857;font-size:22px;font-weight:700;">₱${totalWage.toLocaleString(
-          "en-PH",
-          { minimumFractionDigits: 2, maximumFractionDigits: 2 }
-        )}</div>
+      "en-PH",
+      { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+    )}</div>
       </div>
       <div style="background:#fefce8;padding:16px;border-radius:10px;text-align:center">
         <div style="color:#64748b;font-size:13px;">Total Debts (Unpaid)</div>
         <div style="color:#ca8a04;font-size:22px;font-weight:700;">₱${totalDebts.toLocaleString(
-          "en-PH",
-          { minimumFractionDigits: 2, maximumFractionDigits: 2 }
-        )}</div>
+      "en-PH",
+      { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+    )}</div>
       </div>
     `;
     a4Container.appendChild(summary);
@@ -298,23 +372,23 @@ export default function EmployeeSummaryTab({
       </thead>
       <tbody style="font-size:12px;color:#111827;">
         ${employeeStats
-          .map(
-            ({ employee, daysWorked, absentDays, wage, debt }, i) => `
+        .map(
+          ({ employee, daysWorked, absentDays, wage, debt }, i) => `
           <tr style="background:${i % 2 ? "#f9fafb" : "#ffffff"};">
             <td style="padding:8px 10px;border-bottom:1px solid #e5e7eb;">${employee.name}</td>
             <td style="padding:8px 10px;text-align:right;border-bottom:1px solid #e5e7eb;">${daysWorked}</td>
-            <td style="padding:8px 10px;text-align:right;color:#dc2626;border-bottom:1px solid #e5e7eb;">${absentDays}</td>
+            <td style="padding:8px 10px;text-align:right;color:#dc2626;border-bottom:1px solid #e5e7eb;">${employee.name.includes("(Driver)") ? "-" : absentDays}</td>
             <td style="padding:8px 10px;text-align:right;color:#047857;border-bottom:1px solid #e5e7eb;">₱${wage.toLocaleString(
-              "en-PH",
-              { minimumFractionDigits: 2, maximumFractionDigits: 2 }
-            )}</td>
+            "en-PH",
+            { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+          )}</td>
             <td style="padding:8px 10px;text-align:right;color:#ca8a04;border-bottom:1px solid #e5e7eb;">₱${debt.toLocaleString(
-              "en-PH",
-              { minimumFractionDigits: 2, maximumFractionDigits: 2 }
-            )}</td>
+            "en-PH",
+            { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+          )}</td>
           </tr>`
-          )
-          .join("")}
+        )
+        .join("")}
       </tbody>
     `;
     a4Container.appendChild(table);
@@ -452,7 +526,7 @@ export default function EmployeeSummaryTab({
                       </td>
                       <td className="py-3 px-4 text-right">{daysWorked}</td>
                       <td className="py-3 px-4 text-right text-destructive">
-                        {absentDays}
+                        {employee.name.includes("(Driver)") ? "-" : absentDays}
                       </td>
                       <td className="py-3 px-4 text-right text-green-600 font-semibold">
                         ₱

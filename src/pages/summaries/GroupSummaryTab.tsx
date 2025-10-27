@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Group, Travel, Employee, Plate, Destination } from "@/types";
+import { Group, Travel, Employee, Plate, Destination, Driver } from "@/types";
 import { Card } from "@/components/ui/card";
 import {
   Select,
@@ -25,6 +25,7 @@ interface GroupSummaryTabProps {
   employees: Employee[];
   plates: Plate[];
   destinations: Destination[];
+  drivers: Driver[]; // ✅ Added drivers prop
   selectedGroupId: string;
   onGroupChange: (value: string) => void;
 }
@@ -35,6 +36,7 @@ export default function GroupSummaryTab({
   employees,
   plates,
   destinations,
+  drivers, // ✅ Added drivers
   selectedGroupId,
   onGroupChange,
 }: GroupSummaryTabProps) {
@@ -46,11 +48,11 @@ export default function GroupSummaryTab({
     selectedGroupId === "all"
       ? travels
       : getGroupTravels(selectedGroupId, travels);
-    
-    // ✅ Sort newest to oldest by date
-    const sortedTravels = [...filteredTravels].sort(
-      (a, b) => new Date(b.name).getTime() - new Date(a.name).getTime()
-    );
+
+  // ✅ Sort newest to oldest by date
+  const sortedTravels = [...filteredTravels].sort(
+    (a, b) => new Date(b.name).getTime() - new Date(a.name).getTime()
+  );
 
   const calculateIncome = (travel: Travel) => {
     const sugarIncome = (travel.sugarcane_price || 0) * (travel.bags || 0);
@@ -58,11 +60,21 @@ export default function GroupSummaryTab({
     return sugarIncome + molassesIncome;
   };
 
+  // ✅ Helper: Get driver wage for each travel
+  const getDriverWageForTravel = (travel: Travel) => {
+    const driver = drivers.find((d) => d.employeeId === travel.driver);
+    return driver?.wage || 0;
+  };
+
+  // ✅ Include driver wage in total expenses
   const totalTravels = sortedTravels.length;
   const totalTons = sortedTravels.reduce((sum, t) => sum + (t.tons || 0), 0);
-  const totalIncome = sortedTravels.reduce((sum, t) => sum + calculateIncome(t), 0);
+  const totalIncome = sortedTravels.reduce(
+    (sum, t) => sum + calculateIncome(t),
+    0
+  );
   const totalExpenses = sortedTravels.reduce(
-    (sum, t) => sum + calculateTravelExpenses(t, groups),
+    (sum, t) => sum + calculateTravelExpenses(t, groups) + getDriverWageForTravel(t),
     0
   );
   const netIncome = totalIncome - totalExpenses;
@@ -115,11 +127,17 @@ export default function GroupSummaryTab({
       </div>
       <div style="background:#fef9c3;padding:16px;border-radius:10px;text-align:center">
         <div style="color:#64748b;font-size:13px;">Total Tons</div>
-        <div style="color:#ca8a04;font-size:22px;font-weight:700;">${totalTons.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+        <div style="color:#ca8a04;font-size:22px;font-weight:700;">${totalTons.toLocaleString(
+          "en-PH",
+          { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+        )}</div>
       </div>
       <div style="background:#ecfdf5;padding:16px;border-radius:10px;text-align:center">
         <div style="color:#64748b;font-size:13px;">Net Income</div>
-        <div style="color:#047857;font-size:22px;font-weight:700;">₱${netIncome.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+        <div style="color:#047857;font-size:22px;font-weight:700;">₱${netIncome.toLocaleString(
+          "en-PH",
+          { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+        )}</div>
       </div>
     `;
     a4Container.appendChild(summary);
@@ -145,7 +163,9 @@ export default function GroupSummaryTab({
         ${filteredTravels
           .map((t, i) => {
             const income = calculateIncome(t);
-            const expenses = calculateTravelExpenses(t, groups);
+            const driverWage = getDriverWageForTravel(t); // ✅ added driver wage
+            const expenses =
+              calculateTravelExpenses(t, groups) + driverWage; // ✅ include driver wage
             const net = income - expenses;
             return `
               <tr style="background:${i % 2 ? "#f9fafb" : "#ffffff"};">
@@ -158,10 +178,22 @@ export default function GroupSummaryTab({
                   t.driver,
                   employees
                 )}</td>
-                <td style="padding:8px 10px;text-align:right;border-bottom:1px solid #e5e7eb;">${t.tons.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                <td style="padding:8px 10px;text-align:right;color:#1d4ed8;border-bottom:1px solid #e5e7eb;">₱${income.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                <td style="padding:8px 10px;text-align:right;color:#dc2626;border-bottom:1px solid #e5e7eb;">₱${expenses.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                <td style="padding:8px 10px;text-align:right;color:#047857;border-bottom:1px solid #e5e7eb;">₱${net.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td style="padding:8px 10px;text-align:right;border-bottom:1px solid #e5e7eb;">${t.tons.toLocaleString(
+                  "en-PH",
+                  { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+                )}</td>
+                <td style="padding:8px 10px;text-align:right;color:#1d4ed8;border-bottom:1px solid #e5e7eb;">₱${income.toLocaleString(
+                  "en-PH",
+                  { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+                )}</td>
+                <td style="padding:8px 10px;text-align:right;color:#dc2626;border-bottom:1px solid #e5e7eb;">₱${expenses.toLocaleString(
+                  "en-PH",
+                  { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+                )}</td>
+                <td style="padding:8px 10px;text-align:right;color:#047857;border-bottom:1px solid #e5e7eb;">₱${net.toLocaleString(
+                  "en-PH",
+                  { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+                )}</td>
               </tr>`;
           })
           .join("")}
@@ -202,7 +234,10 @@ export default function GroupSummaryTab({
             {groups
               .slice()
               .sort((a, b) =>
-                b.name.localeCompare(a.name, undefined, { numeric: true, sensitivity: 'base' })
+                b.name.localeCompare(a.name, undefined, {
+                  numeric: true,
+                  sensitivity: "base",
+                })
               )
               .map((group) => (
                 <SelectItem key={group.id} value={group.id}>
@@ -211,7 +246,6 @@ export default function GroupSummaryTab({
               ))}
           </SelectContent>
         </Select>
-
 
         <Button
           onClick={handleDownloadImage}
@@ -233,25 +267,40 @@ export default function GroupSummaryTab({
           <Card className="p-6 bg-yellow-50">
             <p className="text-sm text-muted-foreground mb-2">Total Tons</p>
             <p className="text-2xl font-bold text-yellow-600">
-              {totalTons.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {totalTons.toLocaleString("en-PH", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </p>
           </Card>
           <Card className="p-6 bg-blue-50">
             <p className="text-sm text-muted-foreground mb-2">Total Income</p>
             <p className="text-2xl font-bold text-blue-600">
-              ₱{totalIncome.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ₱
+              {totalIncome.toLocaleString("en-PH", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </p>
           </Card>
           <Card className="p-6 bg-red-50">
             <p className="text-sm text-muted-foreground mb-2">Total Expenses</p>
             <p className="text-2xl font-bold text-red-600">
-              ₱{totalExpenses.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ₱
+              {totalExpenses.toLocaleString("en-PH", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </p>
           </Card>
           <Card className="p-6 bg-green-50">
             <p className="text-sm text-muted-foreground mb-2">Net Income</p>
             <p className="text-2xl font-bold text-green-600">
-              ₱{netIncome.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ₱
+              {netIncome.toLocaleString("en-PH", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </p>
           </Card>
         </div>
@@ -262,23 +311,35 @@ export default function GroupSummaryTab({
             <table className="w-full">
               <thead className="bg-muted/50">
                 <tr>
-                  <th className="text-left py-3 px-4 text-sm font-semibold">Travel</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold">
+                    Travel
+                  </th>
                   <th className="text-left py-3 px-4 text-sm font-semibold">
                     Plate / Destination
                   </th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold">Driver</th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold">Tons</th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold">Income</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold">
+                    Driver
+                  </th>
+                  <th className="text-right py-3 px-4 text-sm font-semibold">
+                    Tons
+                  </th>
+                  <th className="text-right py-3 px-4 text-sm font-semibold">
+                    Income
+                  </th>
                   <th className="text-right py-3 px-4 text-sm font-semibold">
                     Expenses
                   </th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold">Net</th>
+                  <th className="text-right py-3 px-4 text-sm font-semibold">
+                    Net
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {currentTravels.map((t) => {
                   const income = calculateIncome(t);
-                  const expenses = calculateTravelExpenses(t, groups);
+                  const driverWage = getDriverWageForTravel(t); // ✅ include
+                  const expenses =
+                    calculateTravelExpenses(t, groups) + driverWage; // ✅ include
                   const net = income - expenses;
                   return (
                     <tr
@@ -290,16 +351,35 @@ export default function GroupSummaryTab({
                         {getPlateName(t.plateNumber, plates)} →{" "}
                         {getDestinationName(t.destination, destinations)}
                       </td>
-                      <td className="py-3 px-4">{getDriverName(t.driver, employees)}</td>
-                      <td className="py-3 px-4 text-right">{t.tons.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      <td className="py-3 px-4">
+                        {getDriverName(t.driver, employees)}
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        {t.tons.toLocaleString("en-PH", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </td>
                       <td className="py-3 px-4 text-right text-blue-600 font-semibold">
-                        ₱{income.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        ₱
+                        {income.toLocaleString("en-PH", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </td>
                       <td className="py-3 px-4 text-right text-red-600 font-semibold">
-                        ₱{expenses.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        ₱
+                        {expenses.toLocaleString("en-PH", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </td>
                       <td className="py-3 px-4 text-right text-green-600 font-semibold">
-                        ₱{net.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        ₱
+                        {net.toLocaleString("en-PH", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </td>
                     </tr>
                   );

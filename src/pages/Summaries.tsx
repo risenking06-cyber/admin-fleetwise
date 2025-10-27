@@ -70,6 +70,7 @@ export default function Summaries() {
             groups={groups}
             travels={travels}
             debts={debts}
+            drivers={drivers}
             selectedGroupId={selectedGroupId}
             onGroupChange={setSelectedGroupId}
           />
@@ -82,6 +83,7 @@ export default function Summaries() {
             employees={employees}
             plates={plates}
             destinations={destinations}
+            drivers={drivers}
             selectedGroupId={selectedGroupId}
             onGroupChange={setSelectedGroupId}
           />
