@@ -101,21 +101,30 @@ export default function GroupDialog({
 
           <div>
             <Label>Select Employees</Label>
-            <div className="mt-2 space-y-2 max-h-60 overflow-y-auto border border-border rounded-lg p-4">
-              {sortedEmployees.map((emp) => (
-                <div key={emp.id} className="flex items-center gap-2">
-                  <Checkbox
-                    id={`employee-${emp.id}`}
-                    checked={form.employees.includes(emp.id)}
-                    onCheckedChange={() => toggleEmployee(emp.id)}
-                  />
-                  <label htmlFor={`employee-${emp.id}`} className="text-sm cursor-pointer">
-                    {emp.name} - {emp.type}
-                  </label>
-                </div>
-              ))}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-2 max-h-60 overflow-y-auto p-2">
+              {sortedEmployees.map((emp) => {
+                const isSelected = form.employees.includes(emp.id);
+
+                return (
+                  <div
+                    key={emp.id}
+                    onClick={() => toggleEmployee(emp.id)}
+                    className={`p-4 rounded-xl cursor-pointer text-center border transition 
+                      ${
+                        isSelected
+                          ? 'bg-green-200 border-green-600'
+                          : 'bg-red-200 border-red-600 hover:bg-red-300'
+                      }`}
+                  >
+                    <p className="text-sm font-semibold">
+                      {emp.name} {isSelected ? '✅ Added' : '❌ Not Added'}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </div>
+
 
           <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? 'Processing...' : editingGroup ? 'Update' : 'Create'}

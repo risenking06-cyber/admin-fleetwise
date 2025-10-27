@@ -343,6 +343,7 @@ export default function GroupsPage(): JSX.Element {
         debts={debts}
         plates={plates}
         destinations={destinations}
+        drivers={drivers}
       />
 
       <ConfirmDialog
