@@ -12,6 +12,7 @@ import {
 import { useMemo } from "react";
 import { useData } from "@/contexts/DataContext";
 import { calculateEmployeeWage } from "@/pages/groups/utils";
+import { MapPin, Wallet, Truck, Calendar } from "lucide-react";
 
 export default function TravelNetIncomePerDestinationChart() {
   const { travels, destinations, groups, drivers } = useData();
@@ -20,7 +21,7 @@ export default function TravelNetIncomePerDestinationChart() {
     const data = travels.map((t) => {
       const dest = destinations.find((d) => d.id === t.destination);
       const date = new Date(t.name); // assumes travel name = "October 12, 2025"
-
+      const ton = t.tons;
       // Compute Income
       const sugarIncome = (t.sugarcane_price || 0) * (t.bags || 0);
       const molassesIncome = (t.molasses_price || 0) * (t.molasses || 0);
@@ -52,6 +53,7 @@ export default function TravelNetIncomePerDestinationChart() {
         dateValue: date.getTime(),
         destination: dest?.name || "Unknown",
         netIncome,
+        ton,
       };
     });
 
@@ -59,9 +61,9 @@ export default function TravelNetIncomePerDestinationChart() {
   }, [travels, destinations, groups, drivers]);
 
   const colors = [
-    "#10B981", // green
+    "#04a82dff", // green
     "#2563EB", // blue
-    "#F59E0B", // amber
+    "#cc8409ff", // amber
     "#EF4444", // red
     "#8B5CF6", // violet
     "#0EA5E9", // sky
@@ -72,6 +74,86 @@ export default function TravelNetIncomePerDestinationChart() {
   ];
 
   const destinationsList = Array.from(new Set(chartData.map((d) => d.destination)));
+
+  // 🔹 Custom Tooltip with line color for destination
+ const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    const lineColor = payload[0].color;
+
+    return (
+      <div
+        className="rounded-xl shadow-lg border border-white/30 p-4 min-w-[200px] 
+                   bg-gradient-to-br from-white/80 to-slate-50/90 
+                   backdrop-blur-md text-slate-800 dark:from-slate-900/80 
+                   dark:to-slate-800/80 dark:text-slate-100 transition-all"
+      >
+        {/* Date */}
+        <div className="flex items-center gap-2 mb-2">
+          <Calendar 
+            className="w-4 h-4"
+            style={{
+              color: lineColor,
+              filter: `drop-shadow(0 0 4px ${lineColor}80)`,
+            }}
+          />
+          <span>{label}</span>
+        </div>
+
+        {/* Destination */}
+        <div className="flex items-center gap-2 mb-2">
+          <MapPin
+            className="w-4 h-4"
+            style={{
+              color: lineColor,
+              filter: `drop-shadow(0 0 4px ${lineColor}80)`,
+            }}
+          />
+          <span
+            className="font-semibold"
+            style={{ color: lineColor }}
+          >
+            {data.destination}
+          </span>
+        </div>
+
+        {/* Income and Tons */}
+        <div className="space-y-1.5 mt-2 text-sm">
+          <div className="flex items-center gap-2">
+            <Wallet
+              className="w-4 h-4"
+              style={{
+                color: lineColor,
+                filter: `drop-shadow(0 0 4px ${lineColor}60)`,
+              }}
+            />
+            <span>
+              <span className="font-medium">₱</span>
+              {data.netIncome.toLocaleString("en-PH")}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Truck
+              className="w-4 h-4"
+              style={{
+                color: lineColor,
+                filter: `drop-shadow(0 0 4px ${lineColor}60)`,
+              }}
+            />
+            <span>
+              {data.ton?.toLocaleString("en-PH") || 0} tons
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+
+  // End of Custom Tooltip
 
   return (
     <ResponsiveContainer width="100%" height={450}>
@@ -95,14 +177,15 @@ export default function TravelNetIncomePerDestinationChart() {
           }}
           tickFormatter={(value) => `₱${value.toLocaleString("en-PH")}`}
         />
-        <Tooltip
+        {/* <Tooltip
           formatter={(value: number) => `₱${value.toLocaleString("en-PH")}`}
           labelFormatter={(label) => `Date: ${label}`}
           contentStyle={{
             backgroundColor: "rgba(247, 251, 255, 1)",
             color: "#161718ff",
           }}
-        />
+        /> */}
+        <Tooltip content={<CustomTooltip />} />
         <Legend />
         {destinationsList.map((dest, i) => (
           <Line

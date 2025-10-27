@@ -301,22 +301,23 @@ export default function Dashboard() {
         <Card className="p-6">
           <h2 className="text-lg font-semibold mb-4">Travel Analytics</h2>
 
-          <Tabs defaultValue="price" className="w-full">
+          <Tabs defaultValue="net" className="w-full">
             <TabsList className="grid grid-cols-3 w-[450px] mx-auto mb-6">
+              <TabsTrigger value="net">Net Income</TabsTrigger>
               <TabsTrigger value="price">Sugarcane Price</TabsTrigger>
               <TabsTrigger value="molasses">Molasses Price</TabsTrigger>
-              <TabsTrigger value="net">Net Income</TabsTrigger>
-            </TabsList>
 
+            </TabsList>
+            <TabsContent value="net">
+              <TravelNetIncomePerDestinationChart />
+            </TabsContent>
             <TabsContent value="price">
               <TravelPerDestinationChart />
             </TabsContent>
             <TabsContent value="molasses">
               <TravelMolassesPriceChart />
             </TabsContent>
-            <TabsContent value="net">
-              <TravelNetIncomePerDestinationChart />
-            </TabsContent>
+
           </Tabs>
         </Card>
       </div>
