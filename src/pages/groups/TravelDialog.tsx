@@ -18,7 +18,7 @@ export interface TravelFormData {
   plateNumber: string;
   destination: string;
   ticket?: string;
-  pstc?:string;
+  pstc?: string;
   tons: number;
   bags?: number;
   sugarcane_price?: number;
@@ -60,7 +60,7 @@ export default function TravelDialog({
     plateNumber: '',
     destination: '',
     ticket: '',
-    pstc:'',
+    pstc: '',
     tons: 0,
     bags: 0,
     sugarcane_price: 0,
@@ -81,7 +81,7 @@ export default function TravelDialog({
         driver: editingTravel.driver,
         plateNumber: editingTravel.plateNumber,
         destination: editingTravel.destination,
-        pstc:editingTravel.pstc,
+        pstc: editingTravel.pstc,
         ticket: editingTravel.ticket || '',
         tons: editingTravel.tons || 0,
         bags: editingTravel.bags || 0,
@@ -121,9 +121,9 @@ export default function TravelDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (isSubmitting) return;
-    
+
     setIsSubmitting(true);
     try {
       await onSubmit(form);
@@ -342,25 +342,33 @@ export default function TravelDialog({
           {/* ======== ATTENDANCE (SORTED) ======== */}
           <div>
             <Label>Attendance</Label>
-            <div className="mt-2 space-y-2 max-h-60 overflow-y-auto border border-border rounded-lg p-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-2 max-h-60 overflow-y-auto">
               {sortedAttendance.map((att) => {
                 const employee = employees.find((e) => e.id === att.employeeId);
                 if (!employee) return null;
+                const isPresent = att.present;
+
                 return (
-                  <div key={att.employeeId} className="flex items-center gap-2">
-                    <Checkbox
-                      id={`attendance-${att.employeeId}`}
-                      checked={att.present}
-                      onCheckedChange={() => toggleAttendance(att.employeeId)}
-                    />
-                    <label htmlFor={`attendance-${att.employeeId}`} className="text-sm cursor-pointer">
-                      {employee.name} - {employee.type}
-                    </label>
+                  <div
+                    key={att.employeeId}
+                    onClick={() => toggleAttendance(att.employeeId)}
+                    className={`p-4 rounded-xl cursor-pointer text-center border transition 
+                        ${isPresent
+                        ? 'bg-green-200 border-green-600'
+                        : 'bg-red-200 border-red-600 hover:bg-red-300'
+                      }`}
+                  >
+                    <p className="text-sm font-semibold">
+                      {employee.name} {isPresent ? '✅ Present' : '❌ Absent'}
+                    </p>
                   </div>
                 );
               })}
             </div>
           </div>
+
+
+
 
           <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? 'Processing...' : editingTravel ? 'Update' : 'Create'}
