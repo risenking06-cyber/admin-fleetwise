@@ -76,81 +76,101 @@ export default function TravelNetIncomePerDestinationChart() {
   const destinationsList = Array.from(new Set(chartData.map((d) => d.destination)));
 
   // 🔹 Custom Tooltip with line color for destination
- const CustomTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload;
-    const lineColor = payload[0].color;
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      const lineColor = payload[0].color;
 
-    return (
-      <div
-        className="rounded-xl shadow-lg border border-white/30 p-4 min-w-[200px] 
+      return (
+        <div
+          className="rounded-xl shadow-lg border border-white/30 p-4 min-w-[200px] 
                    bg-gradient-to-br from-white/80 to-slate-50/90 
                    backdrop-blur-md text-slate-800 dark:from-slate-900/80 
                    dark:to-slate-800/80 dark:text-slate-100 transition-all"
-      >
-        {/* Date */}
-        <div className="flex items-center gap-2 mb-2">
-          <Calendar 
-            className="w-4 h-4"
-            style={{
-              color: lineColor,
-              filter: `drop-shadow(0 0 4px ${lineColor}80)`,
-            }}
-          />
-          <span>{label}</span>
-        </div>
-
-        {/* Destination */}
-        <div className="flex items-center gap-2 mb-2">
-          <MapPin
-            className="w-4 h-4"
-            style={{
-              color: lineColor,
-              filter: `drop-shadow(0 0 4px ${lineColor}80)`,
-            }}
-          />
-          <span
-            className="font-semibold"
-            style={{ color: lineColor }}
-          >
-            {data.destination}
-          </span>
-        </div>
-
-        {/* Income and Tons */}
-        <div className="space-y-1.5 mt-2 text-sm">
-          <div className="flex items-center gap-2">
-            <Wallet
+        >
+          {/* Date */}
+          <div className="flex items-center gap-2 mb-2">
+            <Calendar
               className="w-4 h-4"
               style={{
                 color: lineColor,
-                filter: `drop-shadow(0 0 4px ${lineColor}60)`,
+                filter: `drop-shadow(0 0 4px ${lineColor}80)`,
               }}
             />
-            <span>
-              <span className="font-medium">₱</span>
-              {data.netIncome.toLocaleString("en-PH")}
+            <span
+              style={{
+                color: lineColor,
+                textShadow: `0 0 4px ${lineColor}40`,
+              }}
+            >
+              {label}
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Truck
+          {/* Destination */}
+          <div className="flex items-center gap-2 mb-2">
+            <MapPin
               className="w-4 h-4"
               style={{
                 color: lineColor,
-                filter: `drop-shadow(0 0 4px ${lineColor}60)`,
+                filter: `drop-shadow(0 0 4px ${lineColor}80)`,
               }}
             />
-            <span>
-              {data.ton?.toLocaleString("en-PH") || 0} tons
+            <span
+              className="font-semibold"
+              style={{ color: lineColor }}
+            >
+              {data.destination}
             </span>
           </div>
+
+          {/* Income and Tons */}
+          <div className="space-y-1.5 mt-2 text-sm">
+            <div className="flex items-center gap-2">
+              <Wallet
+                className="w-4 h-4"
+                style={{
+                  color: lineColor,
+                  filter: `drop-shadow(0 0 4px ${lineColor}60)`,
+                }}
+              />
+              <span
+                style={{
+                  color: lineColor,
+                  textShadow: `0 0 4px ${lineColor}40`,
+                }}
+              >
+                <span className="font-medium">₱</span>
+                {data.netIncome.toLocaleString("en-PH")}
+              </span>
+
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Truck
+                className="w-4 h-4"
+                style={{
+                  color: lineColor,
+                  filter: `drop-shadow(0 0 4px ${lineColor}60)`,
+                }}
+              />
+              <span
+                style={{
+                  color: lineColor,
+                  textShadow: `0 0 4px ${lineColor}40`,
+                }}
+              >
+                {data.ton?.toLocaleString("en-PH") || 0} tons
+              </span>
+
+
+            </div>
+          </div>
         </div>
-      </div>
-    );
-  }
-  return null;
-};
+      );
+    }
+    return null;
+  };
 
 
   // End of Custom Tooltip
