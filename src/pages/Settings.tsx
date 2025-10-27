@@ -16,6 +16,7 @@ const COLLECTIONS = [
   "lands",
   "plates",
   "travels",
+  "otherExpenses"
 ];
 
 export default function Settings() {

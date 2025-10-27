@@ -45,6 +45,13 @@ export interface Driver {
   wage?:number;
 }
 
+export interface OtherExpense{
+  id:string;
+  name:string;
+  description:string;
+  amount:number;
+}
+
 export interface Debt {
   id: string;
   employeeId: string;

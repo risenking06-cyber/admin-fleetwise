@@ -12,6 +12,7 @@ import Employees from "./pages/Employees";
 import Groups from "./pages/Groups";
 import Drivers from "./pages/Drivers";
 import Debts from "./pages/Debts";
+import OtherExpenses from "./pages/OtherExpenseses";
 import Lands from "./pages/Lands";
 import Plates from "./pages/Plates";
 import Destinations from "./pages/Destinations";
@@ -86,6 +87,11 @@ const App = () => (
             <Route path="/debts" element={
               <ProtectedRoute>
                 <DashboardLayout><Debts /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+             <Route path="/expenses" element={
+              <ProtectedRoute>
+                <DashboardLayout><OtherExpenses /></DashboardLayout>
               </ProtectedRoute>
             } />
             <Route path="/lands" element={

@@ -11,6 +11,7 @@ import {
   FileText,
   LogOut,
   Settings,
+  Banknote,
   MoreHorizontal,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -27,6 +28,7 @@ const menuItems = [
   { icon: MapPinned, path: '/lands' },
   { icon: Car, path: '/plates' },
   { icon: MapPin, path: '/destinations' },
+  { icon: Banknote, path: '/expenses' },
   { icon: FileText, path: '/summaries' },
   { icon: Settings, path: '/settings' },
 ];

@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { collection, getDocs, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Employee, Group, Travel, Debt, Land, Plate, Destination, Driver } from '@/types';
+import { Employee, Group, Travel, Debt, Land, Plate, Destination, Driver, OtherExpense } from '@/types';
 import { sortByName, sortGroups } from '@/utils/sorting';
 
 interface DataContextType {
@@ -13,6 +13,7 @@ interface DataContextType {
   plates: Plate[];
   destinations: Destination[];
   drivers: Driver[];
+  otherExpenses: OtherExpense[];
   loading: boolean;
   refetch: () => Promise<void>;
 }
@@ -25,6 +26,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [travels, setTravels] = useState<Travel[]>([]);
   const [debts, setDebts] = useState<Debt[]>([]);
   const [lands, setLands] = useState<Land[]>([]);
+  const [otherExpenses, setOtherExpenses] = useState<OtherExpense[]>([]);
   const [plates, setPlates] = useState<Plate[]>([]);
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
@@ -39,6 +41,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         travelsSnap,
         debtsSnap,
         landsSnap,
+        otherExpensesSnap,
         platesSnap,
         destinationsSnap,
         driversSnap,
@@ -48,6 +51,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         getDocs(collection(db, 'travels')),
         getDocs(collection(db, 'debts')),
         getDocs(collection(db, 'lands')),
+        getDocs(collection(db, 'otherExpenses')),
         getDocs(collection(db, 'plates')),
         getDocs(collection(db, 'destinations')),
         getDocs(collection(db, 'drivers')),
@@ -58,6 +62,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setTravels(travelsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Travel)));
       setDebts(debtsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Debt)));
       setLands(sortByName(landsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Land))));
+      setOtherExpenses(sortByName(otherExpensesSnap.docs.map((d) => ({ id: d.id, ...d.data() } as OtherExpense))));
       setPlates(sortByName(platesSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Plate))));
       setDestinations(sortByName(destinationsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Destination))));
       setDrivers(driversSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Driver)));
@@ -91,6 +96,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
         const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Land));
         setLands(sortByName(data));
       }),
+      onSnapshot(collection(db, 'otherExpenses'), (snapshot) => {
+        const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as OtherExpense));
+        setOtherExpenses(sortByName(data));
+      }),
       onSnapshot(collection(db, 'plates'), (snapshot) => {
         const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Plate));
         setPlates(sortByName(data));
@@ -115,6 +124,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         travels,
         debts,
         lands,
+        otherExpenses,
         plates,
         destinations,
         drivers,

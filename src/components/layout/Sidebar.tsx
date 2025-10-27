@@ -10,6 +10,7 @@ import {
   MapPinned,
   FileText,
   Settings,
+  Banknote,
   LogOut
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -26,6 +27,7 @@ const menuItems = [
   { icon: MapPinned, label: 'Lands', path: '/lands' },
   { icon: Car, label: 'Plates', path: '/plates' },
   { icon: MapPin, label: 'Destinations', path: '/destinations' },
+  { icon: Banknote, label: 'Expenses', path: '/expenses' },
   { icon: FileText, label: 'Summaries', path: '/summaries' },
   { icon: Settings, label: 'Settings', path: '/settings' },
 ];
