@@ -14,6 +14,14 @@ import { calculateEmployeeWage } from './groups/utils';
 import type { Driver } from '@/types';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
+// 🟢 Add your new interface here
+export interface OtherExpense {
+  id: string;
+  name: string;
+  description: string;
+  amount: number;
+}
+
 function cn(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
 }
@@ -22,6 +30,8 @@ export default function Dashboard() {
   const { employees, groups, travels, debts, loading } = useData();
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [driversLoading, setDriversLoading] = useState(true);
+  const [otherExpenses, setOtherExpenses] = useState<OtherExpense[]>([]);
+  const [otherExpensesLoading, setOtherExpensesLoading] = useState(true);
 
   // 🔹 Fetch drivers from Firestore once
   useEffect(() => {
@@ -34,8 +44,23 @@ export default function Dashboard() {
     fetchDrivers();
   }, []);
 
+  // 🔹 Fetch Other Expenses from Firestore once
+  useEffect(() => {
+    const fetchOtherExpenses = async () => {
+      const snapshot = await getDocs(collection(db, 'otherExpenses'));
+      const data = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as OtherExpense[];
+      setOtherExpenses(data);
+      setOtherExpensesLoading(false);
+    };
+    fetchOtherExpenses();
+  }, []);
+
+  // 🧮 Compute Dashboard Stats
   const stats = useMemo(() => {
-    if (loading || driversLoading) return null;
+    if (loading || driversLoading || otherExpensesLoading) return null;
 
     // 🔹 Filter unpaid debts only
     const unpaidDebts = debts.filter((d) => !d.paid);
@@ -50,27 +75,32 @@ export default function Dashboard() {
 
     // 🔹 Compute expenses (including drivers)
     const totalExpenses = travels.reduce((sum, t) => {
-      // Wages for group-based employees
       const groupWages = (t.attendance || []).reduce(
         (acc, att) => acc + calculateEmployeeWage(t, att.employeeId, groups),
         0
       );
 
-      // Other expenses
-      const otherExpenses = (t.expenses || []).reduce(
+      const otherTravelExpenses = (t.expenses || []).reduce(
         (acc, e) => acc + (e.amount || 0),
         0
       );
 
-      // 🔸 Add driver’s wage if the driver exists
       const driver = drivers.find((d) => d.employeeId === t.driver);
       const driverWage = driver ? driver.wage || 0 : 0;
 
-      return sum + groupWages + otherExpenses + driverWage;
-      // return sum + groupWages + otherExpenses;
+      return sum + groupWages + otherTravelExpenses + driverWage;
     }, 0);
 
+    // 🔹 Add Other Expenses
+    const totalOtherExpenses = otherExpenses.reduce(
+      (sum, e) => sum + (e.amount || 0),
+      0
+    );
+
+    // 🔹 Calculate totals
+    const totalExpensesWithOther = totalExpenses + totalOtherExpenses;
     const netIncome = totalIncome - totalExpenses;
+    const netIncomeWithOther = totalIncome - totalExpensesWithOther;
 
     return {
       employees: employees.length,
@@ -81,10 +111,23 @@ export default function Dashboard() {
       totalIncome,
       totalExpenses,
       netIncome,
+      totalOtherExpenses,
+      totalExpensesWithOther,
+      netIncomeWithOther,
     };
-  }, [employees, groups, travels, debts, drivers, loading, driversLoading]);
+  }, [
+    employees,
+    groups,
+    travels,
+    debts,
+    drivers,
+    otherExpenses,
+    loading,
+    driversLoading,
+    otherExpensesLoading,
+  ]);
 
-  if (loading || driversLoading || !stats) {
+  if (loading || driversLoading || otherExpensesLoading || !stats) {
     return (
       <div className="animate-in fade-in duration-300">
         <div className="mb-8">
@@ -110,7 +153,6 @@ export default function Dashboard() {
         <h1 className="text-4xl font-bold text-foreground mb-2">Dashboard Overview</h1>
         <p className="text-muted-foreground">Welcome to your sugarcane management system</p>
       </div>
-
 
       {/* 🟢 TABS WRAPPER */}
       <Tabs defaultValue="overview" className="w-full mb-8">
@@ -222,18 +264,34 @@ export default function Dashboard() {
 
       {/* 🟦 Row 2 – Financial Summary + Pie Chart */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Pie Chart */}
+        {/* Pie Chart with Tabs */}
         <Card className="p-6">
           <h2 className="text-lg font-semibold mb-4">Financial Breakdown</h2>
-          <FinancialPieChart
-            // totalIncome={stats.totalIncome}
-            totalExpenses={stats.totalExpenses}
-            netIncome={stats.netIncome}
-          />
+
+          <Tabs defaultValue="main" className="w-full">
+            <TabsList className="grid grid-cols-2 w-[300px] mx-auto mb-6">
+              <TabsTrigger value="main">Main</TabsTrigger>
+              <TabsTrigger value="withOther">With Other Expenses</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="main">
+              <FinancialPieChart
+                totalExpenses={stats.totalExpenses}
+                netIncome={stats.netIncome}
+              />
+            </TabsContent>
+
+            <TabsContent value="withOther">
+              <FinancialPieChart
+                totalExpenses={stats.totalExpensesWithOther}
+                netIncome={stats.netIncomeWithOther}
+              />
+            </TabsContent>
+          </Tabs>
         </Card>
+
         <Card className="p-6">
           <h2 className="text-lg font-semibold mb-4">Employee Income vs Employee Debts</h2>
-          {/* Pass drivers as prop so chart computes properly */}
           <EmployeeIncomeDebtChart drivers={drivers} />
         </Card>
       </div>
@@ -259,12 +317,9 @@ export default function Dashboard() {
             <TabsContent value="net">
               <TravelNetIncomePerDestinationChart />
             </TabsContent>
-
-
           </Tabs>
         </Card>
       </div>
     </div>
   );
 }
-

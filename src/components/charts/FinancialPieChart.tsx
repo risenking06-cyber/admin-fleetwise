@@ -9,12 +9,12 @@ import {
 } from 'recharts';
 
 interface FinancialPieChartProps {
-  // totalIncome: number;
   totalExpenses: number;
   netIncome: number;
 }
 
-const COLORS = [ '#ef4444', '#2253bbff']; // Green, Red, Blue
+// Default colors
+const COLORS = ['#ef4444', '#2253bbff']; // Red for Expenses, Blue for Net Income
 
 function renderActiveShape(props: any) {
   const RADIAN = Math.PI / 180;
@@ -30,6 +30,7 @@ function renderActiveShape(props: any) {
     payload,
     percent,
     value,
+    netIncome, // ✅ passed dynamically
   } = props;
 
   const sin = Math.sin(-RADIAN * midAngle);
@@ -42,17 +43,24 @@ function renderActiveShape(props: any) {
   const ey = my;
   const textAnchor = cos >= 0 ? 'start' : 'end';
 
+  // ✅ Determine dynamic center text
+  const isNetIncomeSection = payload.name === 'Net Income';
+  const isLoss = netIncome < 0;
+  const centerLabel = isNetIncomeSection && isLoss ? 'Net Loss' : payload.name;
+  const centerColor = isNetIncomeSection && isLoss ? '#ef4444' : fill;
+
   return (
     <g>
+      {/* ✅ Dynamic center label */}
       <text
         x={cx}
         y={cy}
         dy={8}
         textAnchor="middle"
-        fill={fill}
+        fill={centerColor}
         className="font-semibold"
       >
-        {payload.name}
+        {centerLabel}
       </text>
 
       <Sector
@@ -98,49 +106,70 @@ function renderActiveShape(props: any) {
 }
 
 export default function FinancialPieChart({
-  // totalIncome,
   totalExpenses,
   netIncome,
 }: FinancialPieChartProps) {
   const [activeIndex, setActiveIndex] = useState(0);
 
-  // const Income = totalIncome;
+  // ✅ Ensure values are positive for chart
+  const safeExpenses = Math.abs(totalExpenses);
+  const safeNetIncome = Math.abs(netIncome);
+
+  const isLoss = netIncome < 0;
+
+  // ✅ Dynamic colors: both red if negative, normal colors otherwise
+  const dynamicColors = isLoss ? ['#ef4444', '#ef4444'] : COLORS;
+
+  // ✅ Data for the chart
   const data = [
-    // { name: 'Income', value: totalIncome },
-    { name: 'Expenses', value: totalExpenses },
-    { name: 'Net Income', value: netIncome },
+    { name: 'Expenses', value: safeExpenses },
+    { name: 'Net Income', value: safeNetIncome },
   ];
 
   const handlePieEnter = (_: any, index: number) => setActiveIndex(index);
 
+  const formattedLoss = Math.abs(netIncome).toLocaleString('en-PH', {
+    minimumFractionDigits: 2,
+  });
+
   return (
-    <ResponsiveContainer width="100%" height={400}>
-      <PieChart>
-        <Pie
-          activeIndex={activeIndex}
-          activeShape={renderActiveShape}
-          data={data}
-          cx="50%"
-          cy="50%"
-          innerRadius={80}
-          outerRadius={120}
-          startAngle={180} // ← Rotates the chart 90° counterclockwise (starts from top)
-          endAngle={-180}
-          dataKey="value"
-          onMouseEnter={handlePieEnter}
-          paddingAngle={6} // ← Creates space between slices like (  )
-        >
-          {data.map((_, i) => (
-            <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />
-          ))}
-        </Pie>
-    
-        <Tooltip
-          formatter={(val: number, name: string) =>
-            [`₱${val.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`, name]
-          }
-        />
-      </PieChart>
-    </ResponsiveContainer>
+    <>
+      <ResponsiveContainer width="100%" height={400}>
+        <PieChart>
+          <Pie
+            activeIndex={activeIndex}
+            activeShape={(props) => renderActiveShape({ ...props, netIncome })} // ✅ pass netIncome
+            data={data}
+            cx="50%"
+            cy="50%"
+            innerRadius={80}
+            outerRadius={120}
+            startAngle={180}
+            endAngle={-180}
+            dataKey="value"
+            onMouseEnter={handlePieEnter}
+            paddingAngle={6}
+          >
+            {data.map((_, i) => (
+              <Cell key={`cell-${i}`} fill={dynamicColors[i % dynamicColors.length]} />
+            ))}
+          </Pie>
+
+          <Tooltip
+            formatter={(val: number, name: string) => [
+              `₱${val.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`,
+              name,
+            ]}
+          />
+        </PieChart>
+      </ResponsiveContainer>
+
+      {/* ✅ Loss message */}
+      {isLoss && (
+        <p className="text-center text-red-500 font-medium mt-3 animate-fade-in">
+          ⚠ The company is currently operating at a net loss of ₱{formattedLoss}.
+        </p>
+      )}
+    </>
   );
 }
