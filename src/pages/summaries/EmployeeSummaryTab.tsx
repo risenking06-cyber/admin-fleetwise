@@ -251,15 +251,16 @@ export default function EmployeeSummaryTab({
     summaryData.forEach((line, i) => doc.text(`• ${line}`, 20, y + i * 6));
 
     // 🧮 TABLE
-    const tableData = employeeStats.map(
-      ({ employee, daysWorked, absentDays, wage, debt }) => [
+    // Exclude drivers from download
+    const tableData = employeeStats
+      .filter(({ employee }) => !employee.name.includes("(Driver)"))
+      .map(({ employee, daysWorked, absentDays, wage, debt }) => [
         employee.name,
         daysWorked,
         absentDays,
         formatCurrency(wage),
         formatCurrency(debt),
-      ]
-    );
+      ]);
 
     y += summaryData.length * 6 + 10;
 
@@ -330,30 +331,39 @@ export default function EmployeeSummaryTab({
     title.style.marginBottom = "12px";
     a4Container.appendChild(title);
 
+    // 🟩 Exclude drivers from export data
+    const filteredStats = employeeStats.filter(
+      ({ employee }) => !employee.name.includes("(Driver)")
+    );
+
+    const totalDaysWorked = filteredStats.reduce((s, st) => s + st.daysWorked, 0);
+    const totalWage = filteredStats.reduce((s, st) => s + st.wage, 0);
+    const totalDebts = filteredStats.reduce((s, st) => s + st.debt, 0);
+
     const summary = document.createElement("div");
     summary.style.display = "grid";
     summary.style.gridTemplateColumns = "repeat(3, 1fr)";
     summary.style.gap = "12px";
     summary.innerHTML = `
-      <div style="background:#eff6ff;padding:16px;border-radius:10px;text-align:center">
-        <div style="color:#64748b;font-size:13px;">Total Days Worked</div>
-        <div style="color:#1d4ed8;font-size:22px;font-weight:700;">${totalDaysWorked}</div>
-      </div>
-      <div style="background:#ecfdf5;padding:16px;border-radius:10px;text-align:center">
-        <div style="color:#64748b;font-size:13px;">Total Wage</div>
-        <div style="color:#047857;font-size:22px;font-weight:700;">₱${totalWage.toLocaleString(
+  <div style="background:#eff6ff;padding:16px;border-radius:10px;text-align:center">
+    <div style="color:#64748b;font-size:13px;">Total Days Worked</div>
+    <div style="color:#1d4ed8;font-size:22px;font-weight:700;">${totalDaysWorked}</div>
+  </div>
+  <div style="background:#ecfdf5;padding:16px;border-radius:10px;text-align:center">
+    <div style="color:#64748b;font-size:13px;">Total Wage</div>
+    <div style="color:#047857;font-size:22px;font-weight:700;">₱${totalWage.toLocaleString(
       "en-PH",
       { minimumFractionDigits: 2, maximumFractionDigits: 2 }
     )}</div>
-      </div>
-      <div style="background:#fefce8;padding:16px;border-radius:10px;text-align:center">
-        <div style="color:#64748b;font-size:13px;">Total Debts (Unpaid)</div>
-        <div style="color:#ca8a04;font-size:22px;font-weight:700;">₱${totalDebts.toLocaleString(
+  </div>
+  <div style="background:#fefce8;padding:16px;border-radius:10px;text-align:center">
+    <div style="color:#64748b;font-size:13px;">Total Debts (Unpaid)</div>
+    <div style="color:#ca8a04;font-size:22px;font-weight:700;">₱${totalDebts.toLocaleString(
       "en-PH",
       { minimumFractionDigits: 2, maximumFractionDigits: 2 }
     )}</div>
-      </div>
-    `;
+  </div>
+`;
     a4Container.appendChild(summary);
 
     const table = document.createElement("table");
@@ -361,37 +371,38 @@ export default function EmployeeSummaryTab({
     table.style.borderCollapse = "collapse";
     table.style.marginTop = "20px";
     table.innerHTML = `
-      <thead style="background:#1e3a8a;color:white;font-size:13px;">
-        <tr>
-          <th style="padding:10px;text-align:left;">Employee</th>
-          <th style="padding:10px;text-align:right;">Present</th>
-          <th style="padding:10px;text-align:right;">Absent</th>
-          <th style="padding:10px;text-align:right;">Total Wage</th>
-          <th style="padding:10px;text-align:right;">Unpaid Debt</th>
-        </tr>
-      </thead>
-      <tbody style="font-size:12px;color:#111827;">
-        ${employeeStats
+  <thead style="background:#1e3a8a;color:white;font-size:13px;">
+    <tr>
+      <th style="padding:10px;text-align:left;">Employee</th>
+      <th style="padding:10px;text-align:right;">Present</th>
+      <th style="padding:10px;text-align:right;">Absent</th>
+      <th style="padding:10px;text-align:right;">Total Wage</th>
+      <th style="padding:10px;text-align:right;">Unpaid Debt</th>
+    </tr>
+  </thead>
+  <tbody style="font-size:12px;color:#111827;">
+    ${filteredStats
         .map(
           ({ employee, daysWorked, absentDays, wage, debt }, i) => `
-          <tr style="background:${i % 2 ? "#f9fafb" : "#ffffff"};">
-            <td style="padding:8px 10px;border-bottom:1px solid #e5e7eb;">${employee.name}</td>
-            <td style="padding:8px 10px;text-align:right;border-bottom:1px solid #e5e7eb;">${daysWorked}</td>
-            <td style="padding:8px 10px;text-align:right;color:#dc2626;border-bottom:1px solid #e5e7eb;">${employee.name.includes("(Driver)") ? "-" : absentDays}</td>
-            <td style="padding:8px 10px;text-align:right;color:#047857;border-bottom:1px solid #e5e7eb;">₱${wage.toLocaleString(
+        <tr style="background:${i % 2 ? "#f9fafb" : "#ffffff"};">
+          <td style="padding:8px 10px;border-bottom:1px solid #e5e7eb;">${employee.name}</td>
+          <td style="padding:8px 10px;text-align:right;border-bottom:1px solid #e5e7eb;">${daysWorked}</td>
+          <td style="padding:8px 10px;text-align:right;color:#dc2626;border-bottom:1px solid #e5e7eb;">${absentDays}</td>
+          <td style="padding:8px 10px;text-align:right;color:#047857;border-bottom:1px solid #e5e7eb;">₱${wage.toLocaleString(
             "en-PH",
             { minimumFractionDigits: 2, maximumFractionDigits: 2 }
           )}</td>
-            <td style="padding:8px 10px;text-align:right;color:#ca8a04;border-bottom:1px solid #e5e7eb;">₱${debt.toLocaleString(
+          <td style="padding:8px 10px;text-align:right;color:#ca8a04;border-bottom:1px solid #e5e7eb;">₱${debt.toLocaleString(
             "en-PH",
             { minimumFractionDigits: 2, maximumFractionDigits: 2 }
           )}</td>
-          </tr>`
+        </tr>`
         )
         .join("")}
-      </tbody>
-    `;
+  </tbody>
+`;
     a4Container.appendChild(table);
+
 
     const footer = document.createElement("div");
     footer.innerText = `Generated on: ${new Date().toLocaleString()}`;
