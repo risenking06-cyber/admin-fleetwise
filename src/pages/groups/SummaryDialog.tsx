@@ -62,6 +62,35 @@ export default function SummaryDialog({
   const getPlateName = (id: string) => plates.find((p) => p.id === id)?.name || 'Unknown Plate';
   const getDestinationName = (id: string) => destinations.find((d) => d.id === id)?.name || 'Unknown Destination';
 
+  // 🧮 Compute total summary across all travels (includes driver wage)
+  const totalSummary = groupTravels.reduce(
+    (acc, travel) => {
+      const sugarIncome = (travel.sugarcane_price || 0) * (travel.bags || 0);
+      const molassesIncome = (travel.molasses_price || 0) * (travel.molasses || 0);
+      const grossIncome = sugarIncome + molassesIncome;
+
+      const driverInfo = getDriverInfo(travel.driver);
+      const driverWage = driverInfo.wage;
+
+      const totalWageForTravel =
+        (travel.attendance || []).reduce(
+          (sum, att) => sum + calculateEmployeeWage(travel, att.employeeId, [group]),
+          0
+        ) + driverWage;
+
+      const travelExpenses = (travel.expenses || []).reduce((s, e) => s + (e.amount || 0), 0);
+      const totalExpensesForTravel = totalWageForTravel + travelExpenses;
+      const netIncome = grossIncome - totalExpensesForTravel;
+
+      acc.totalGross += grossIncome;
+      acc.totalWage += totalWageForTravel;
+      acc.totalExpenses += totalExpensesForTravel;
+      acc.totalNet += netIncome;
+      return acc;
+    },
+    { totalGross: 0, totalWage: 0, totalExpenses: 0, totalNet: 0 }
+  );
+
   return (
     <Dialog open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) setSelectedEmployee(null); }}>
       <DialogContent className="max-w-7xl max-h-[85vh]">
@@ -374,6 +403,39 @@ export default function SummaryDialog({
                     </Card>
                   );
                 })}
+
+              {/* ✅ Grand Totals at the bottom */}
+              <Card className="border-2 border-primary mt-8">
+                <CardContent className="p-6">
+                  <h3 className="text-xl font-bold mb-4 text-primary">Overall Summary</h3>
+                  <div className="grid grid-cols-4 gap-4 text-center">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Gross Income</p>
+                      <p className="text-lg font-bold text-green-600">
+                        ₱{totalSummary.totalGross.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Wages (incl. driver)</p>
+                      <p className="text-lg font-bold text-orange-600">
+                        ₱{totalSummary.totalWage.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Expenses and Wages</p>
+                      <p className="text-lg font-bold text-red-600">
+                        ₱{totalSummary.totalExpenses.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Net Income</p>
+                      <p className="text-lg font-bold text-blue-600">
+                        ₱{totalSummary.totalNet.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
         </Tabs>
