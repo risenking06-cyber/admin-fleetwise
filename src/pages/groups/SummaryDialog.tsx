@@ -42,8 +42,18 @@ export default function SummaryDialog({
   const [selectedEmployee, setSelectedEmployee] = React.useState<Employee | null>(null);
 
   React.useEffect(() => {
-    if (!open) setSelectedEmployee(null);
-  }, [open]);
+  if (open && group && !selectedEmployee) {
+    const firstEmp = [...group.employees]
+      .map((id) => employees.find((e) => e.id === id))
+      .filter((e): e is Employee => !!e)
+      .sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }))[0];
+    if (firstEmp) {
+      setSelectedEmployee(firstEmp);
+      if (onSelectEmployee) onSelectEmployee(firstEmp);
+    }
+  }
+}, [open, group, employees, selectedEmployee, onSelectEmployee]);
+
 
   if (!group) return null;
 
