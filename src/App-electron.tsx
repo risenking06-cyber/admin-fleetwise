@@ -19,6 +19,7 @@ import Summaries from "./pages/Summaries";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import OtherExpenses from "./pages/OtherExpenseses";
 
 
 const queryClient = new QueryClient({
@@ -101,6 +102,11 @@ const App = () => (
             <Route path="/destinations" element={
               <ProtectedRoute>
                 <DashboardLayout><Destinations /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/expenses" element={
+              <ProtectedRoute>
+                <DashboardLayout><OtherExpenses /></DashboardLayout>
               </ProtectedRoute>
             } />
             <Route path="/summaries" element={

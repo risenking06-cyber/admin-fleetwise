@@ -48,10 +48,8 @@ export default function Debts() {
     setEmployees(sorted);
   };
 
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (isSubmitting) return;
     
     setIsSubmitting(true);
@@ -86,20 +84,22 @@ export default function Debts() {
   };
 
   const handleMarkAsPaid = async (debt: Debt) => {
-  const t = toast.loading('Marking as paid...');
-  try {
-    await updateDoc(doc(db, 'debts', debt.id), { paid: true });
-    toast.success('Debt marked as paid', { id: t });
-    fetchDebts();
-  } catch {
-    toast.error('Failed to mark as paid', { id: t });
-  }
-};
-
+    const t = toast.loading('Marking as paid...');
+    try {
+      await updateDoc(doc(db, 'debts', debt.id), { paid: true });
+      toast.success('Debt marked as paid', { id: t });
+      fetchDebts();
+    } catch {
+      toast.error('Failed to mark as paid', { id: t });
+    }
+  };
 
   const getEmployeeDebts = (employeeId: string) => debts.filter(d => d.employeeId === employeeId);
   const getEmployeeTotalDebt = (employeeId: string) =>
     getEmployeeDebts(employeeId).filter(d => !d.paid).reduce((sum, debt) => sum + debt.amount, 0);
+
+  // 🧮 Compute total unpaid debts
+  const totalAllDebts = debts.filter(d => !d.paid).reduce((sum, d) => sum + d.amount, 0);
 
   return (
     <div>
@@ -109,8 +109,19 @@ export default function Debts() {
       </div>
 
       {/* Employee List */}
-      <Card className="p-6">
-        <div className="overflow-x-auto">
+      <Card className="p-6 relative">
+        {/* 🧮 Total unpaid debts at top-right corner */}
+        <div className="absolute top-4 right-4 text-right">
+          <p className="text-sm text-muted-foreground">Total Unpaid Debts</p>
+          <p className="text-2xl font-bold text-destructive">
+            ₱{totalAllDebts.toLocaleString('en-PH', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </p>
+        </div>
+
+        <div className="overflow-x-auto mt-12">
           <table className="w-full border-collapse">
             <thead>
               <tr className="border-b border-border">
@@ -127,7 +138,10 @@ export default function Debts() {
                 >
                   <td className="py-3 px-4 text-foreground font-medium">{employee.name}</td>
                   <td className="py-3 px-4 text-destructive font-semibold">
-                    ₱{getEmployeeTotalDebt(employee.id).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    ₱{getEmployeeTotalDebt(employee.id).toLocaleString('en-PH', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </td>
                   <td className="py-3 px-4 text-right space-x-2">
                     <Button
@@ -156,8 +170,6 @@ export default function Debts() {
                     >
                       <Plus className="w-4 h-4" />
                     </Button>
-
-                    
                   </td>
                 </tr>
               ))}
@@ -165,7 +177,6 @@ export default function Debts() {
           </table>
         </div>
       </Card>
-
 
       {/* Add/Edit Debt Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -274,7 +285,6 @@ export default function Debts() {
                               <CheckCircle2 className="w-4 h-4 text-green-600" />
                             </Button>
                           )}
-
                           <Button
                             size="sm"
                             variant="secondary"
@@ -320,6 +330,3 @@ export default function Debts() {
     </div>
   );
 }
-
-
-

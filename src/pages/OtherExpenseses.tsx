@@ -52,17 +52,17 @@ export default function OtherExpenses() {
   const currentExpenses = otherExpenses.slice(indexOfFirst, indexOfLast);
 
   return (
-    <div className="space-y-6">
-      {/* Header Section */}
-      <div className="mb-4">
+    <div>
+      {/* Header */}
+      <div className="mb-8">
         <h1 className="text-4xl font-bold text-foreground mb-2">Other Expenses</h1>
         <p className="text-muted-foreground">Manage other expenses</p>
       </div>
 
-      {/* ✅ Total + Add Button Row */}
-      <div className="flex justify-between items-center">
-        {/* Total Card */}
-        <Card className="p-4 w-fit shadow-sm pr-20">
+      {/* Card Section */}
+      <Card className="p-6 relative">
+        {/* 🧮 Total Expenses at Top-Left */}
+        <div className="absolute top-4 left-4 text-left">
           <p className="text-sm text-muted-foreground">Total Expenses</p>
           <p className="text-2xl font-bold text-destructive">
             ₱{totalExpenses.toLocaleString('en-PH', {
@@ -70,109 +70,108 @@ export default function OtherExpenses() {
               maximumFractionDigits: 2,
             })}
           </p>
-        </Card>
+        </div>
 
-        {/* Add Expense Button */}
-        <Dialog
-          open={crud.isDialogOpen}
-          onOpenChange={(open) => {
-            crud.setIsDialogOpen(open);
-            if (!open) {
-              crud.setEditingItem(null);
-              setFormData({ name: '', description: '', amount: 0 });
-            }
-          }}
-        >
-          <DialogTrigger asChild>
-            <Button className="gap-2" onClick={crud.openCreateDialog}>
-              <Plus className="w-4 h-4" />
-              Add Expense
-            </Button>
-          </DialogTrigger>
-
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{crud.editingItem ? 'Edit Expense' : 'Add New Expense'}</DialogTitle>
-            </DialogHeader>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Input
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="amount">Amount</Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  step="0.01"
-                  value={formData.amount}
-                  onChange={(e) =>
-                    setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })
-                  }
-                  required
-                />
-              </div>
-
-              <Button type="submit" className="w-full" disabled={crud.isSubmitting}>
-                {crud.isSubmitting
-                  ? 'Processing...'
-                  : crud.editingItem
-                  ? 'Update'
-                  : 'Create'}
+        {/* ➕ Add Expense Button at Top-Right */}
+        <div className="absolute top-4 right-4">
+          <Dialog
+            open={crud.isDialogOpen}
+            onOpenChange={(open) => {
+              crud.setIsDialogOpen(open);
+              if (!open) {
+                crud.setEditingItem(null);
+                setFormData({ name: '', description: '', amount: 0 });
+              }
+            }}
+          >
+            <DialogTrigger asChild>
+              <Button className="gap-2" onClick={crud.openCreateDialog}>
+                <Plus className="w-4 h-4" />
+                Add Expense
               </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
+            </DialogTrigger>
 
-      {/* Expenses Table */}
-      <Card className="p-6">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-border">
-              <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Name</th>
-              <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Description</th>
-              <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Amount</th>
-              <th className="text-right py-3 px-4 text-sm font-semibold text-foreground">Actions</th>
-            </tr>
-          </thead>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{crud.editingItem ? 'Edit Expense' : 'Add New Expense'}</DialogTitle>
+              </DialogHeader>
 
-          <tbody>
-            {currentExpenses.map((expense) => (
-              <tr
-                key={expense.id}
-                className="border-b border-border hover:bg-secondary/50 transition-colors"
-              >
-                <td className="py-3 px-4 text-foreground">{expense.name}</td>
-                <td className="py-3 px-4 text-foreground">{expense.description}</td>
-                <td className="py-3 px-4 text-destructive">
-                  ₱
-                  {expense.amount.toLocaleString('en-PH', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                </td>
-                <td className="py-3 px-4">
-                  <div className="flex justify-end gap-2">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <Label htmlFor="name">Name</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="description">Description</Label>
+                  <Input
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="amount">Amount</Label>
+                  <Input
+                    id="amount"
+                    type="number"
+                    step="0.01"
+                    value={formData.amount}
+                    onChange={(e) =>
+                      setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })
+                    }
+                    required
+                  />
+                </div>
+
+                <Button type="submit" className="w-full" disabled={crud.isSubmitting}>
+                  {crud.isSubmitting
+                    ? 'Processing...'
+                    : crud.editingItem
+                    ? 'Update'
+                    : 'Create'}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {/* Table */}
+        <div className="overflow-x-auto mt-16">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="border-b border-border">
+                <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Name</th>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Description</th>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Amount</th>
+                <th className="text-right py-3 px-4 text-sm font-semibold text-foreground">Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {currentExpenses.map((expense) => (
+                <tr
+                  key={expense.id}
+                  className="border-b border-border hover:bg-secondary/50 transition-colors"
+                >
+                  <td className="py-3 px-4 text-foreground font-medium">{expense.name}</td>
+                  <td className="py-3 px-4 text-foreground">{expense.description}</td>
+                  <td className="py-3 px-4 text-destructive font-semibold">
+                    ₱{expense.amount.toLocaleString('en-PH', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </td>
+                  <td className="py-3 px-4 text-right space-x-2">
                     <Button
-                      variant="secondary"
                       size="sm"
+                      variant="secondary"
                       onClick={() => {
                         crud.openEditDialog(expense);
                         setFormData({
@@ -185,30 +184,30 @@ export default function OtherExpenses() {
                       <Edit className="w-4 h-4" />
                     </Button>
                     <Button
-                      variant="destructive"
                       size="sm"
+                      variant="destructive"
                       onClick={() => crud.openDeleteDialog(expense.id)}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+                  </td>
+                </tr>
+              ))}
 
-            {currentExpenses.length === 0 && (
-              <tr>
-                <td colSpan={4} className="py-6 text-center text-muted-foreground">
-                  No expenses found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              {currentExpenses.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="py-6 text-center text-muted-foreground">
+                    No expenses found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
 
-        {/* ✅ Pagination Controls */}
+        {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-2 mt-4">
+          <div className="flex justify-center items-center gap-2 mt-6">
             <Button
               variant="outline"
               size="sm"
