@@ -74,4 +74,5 @@ export interface Plate {
 export interface Destination {
   id: string;
   name: string;
+  color:string;
 }
