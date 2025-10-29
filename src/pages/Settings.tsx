@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Loader2, DatabaseBackup, RotateCcw, Trash2 } from "lucide-react";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 const COLLECTIONS = [
   "debts",
@@ -16,14 +17,16 @@ const COLLECTIONS = [
   "lands",
   "plates",
   "travels",
-  "otherExpenses"
+  "otherExpenses",
 ];
 
 export default function Settings() {
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("");
   const [restoreFile, setRestoreFile] = useState<File | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
+  // 🔹 Backup all collections
   const handleBackup = async () => {
     setLoading(true);
     setLoadingMessage("Backing up your database...");
@@ -51,6 +54,7 @@ export default function Settings() {
     }
   };
 
+  // 🔹 Restore data from JSON
   const handleRestore = async () => {
     if (!restoreFile) return toast.error("Please upload a backup file first.");
     setLoading(true);
@@ -75,8 +79,8 @@ export default function Settings() {
     }
   };
 
+  // 🔹 Delete all data (with custom confirm dialog)
   const handleDeleteAll = async () => {
-    if (!confirm("⚠️ This will permanently delete ALL data. Continue?")) return;
     setLoading(true);
     setLoadingMessage("Deleting all data...");
     try {
@@ -93,16 +97,19 @@ export default function Settings() {
     } finally {
       setLoading(false);
       setLoadingMessage("");
+      setDeleteConfirmOpen(false);
     }
   };
 
   return (
     <div className="relative min-h-screen p-8 bg-gradient-to-br from-background via-muted to-background">
-      {/* 🔹 LOADING OVERLAY */}
+      {/* 🔹 Loading Overlay */}
       {loading && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center z-50 text-white">
           <Loader2 className="w-12 h-12 animate-spin mb-4" />
-          <p className="text-lg font-semibold">{loadingMessage || "Please wait..."}</p>
+          <p className="text-lg font-semibold">
+            {loadingMessage || "Please wait..."}
+          </p>
         </div>
       )}
 
@@ -112,7 +119,6 @@ export default function Settings() {
           <h1 className="text-4xl font-extrabold text-foreground tracking-tight">
             ⚙️ Settings
           </h1>
-
         </div>
 
         {/* Main Card */}
@@ -122,7 +128,6 @@ export default function Settings() {
           </h2>
 
           <div className="grid md:grid-cols-3 gap-6">
-            
             {/* Backup */}
             <div className="flex flex-col items-center text-center p-4 rounded-2xl border bg-muted/30 hover:bg-muted/50 transition">
               <DatabaseBackup className="w-10 h-10 text-primary mb-3" />
@@ -144,7 +149,7 @@ export default function Settings() {
               </p>
               <Button
                 variant="destructive"
-                onClick={handleDeleteAll}
+                onClick={() => setDeleteConfirmOpen(true)}
                 disabled={loading}
                 className="w-full"
               >
@@ -176,6 +181,16 @@ export default function Settings() {
           </div>
         </Card>
       </div>
+
+      {/* 🔹 Confirm Delete Dialog */}
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        onConfirm={handleDeleteAll}
+        title="Delete All Data"
+        description="⚠️ This will permanently delete ALL collections and data from Firestore. This action cannot be undone."
+        confirmText="Delete Everything"
+      />
     </div>
   );
 }
