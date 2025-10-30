@@ -7,11 +7,11 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  LabelList,
 } from 'recharts';
 import { useData } from '@/contexts/DataContext';
 import { calculateEmployeeWage } from '@/pages/groups/utils';
 import type { Driver } from '@/types';
+import { Wallet, CreditCard } from 'lucide-react'; // ✅ Icons only
 
 interface Props {
   drivers: Driver[];
@@ -52,62 +52,38 @@ export default function EmployeeIncomeDebtChart({ drivers }: Props) {
     });
   }, [employees, travels, debts, groups, drivers]);
 
-  const tooltipStyles = {
-    background: 'white',
-    borderRadius: '12px',
-    padding: '12px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-    border: '1px solid #f0f0f0',
-  };
-
-const colorMap: Record<string, string> = {
-  income: '#16a34a', // green
-  debts: '#dc2626',  // red
-};
-
-const CustomTooltip = ({ active, payload, label }: any) => {
+  // ✅ Tailwind-based tooltip (icons only)
+  const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
 
   return (
-    <div
-      style={{
-        background: 'white',
-        borderRadius: 12,
-        padding: 12,
-        boxShadow: '0 6px 20px rgba(0,0,0,0.08)',
-        border: '1px solid #f3f4f6',
-        minWidth: 160,
-      }}
-    >
-      <p style={{ margin: 0, marginBottom: 6, color: '#111827' }}>
-        {label}
-      </p>
+    <div className="bg-white rounded-xl p-3 shadow-lg border border-gray-100 min-w-[120px]">
+      <p className="text-sm font-semibold text-gray-800 mb-2">{label}</p>
 
-      {payload.map((entry: any, index: number) => {
-        const key = entry.dataKey; // 'income' or 'debts'
-        const textColor = colorMap[key] || '#374151'; // fallback
+      <div className="space-y-1">
+        {payload.map((entry: any, index: number) => {
+          const key = entry.dataKey;
+          const value = entry.value;
+          const Icon = key === 'income' ? Wallet : CreditCard;
+          const color =
+            key === 'income' ? 'text-green-600' : 'text-red-600';
 
-        return (
-          <div
-            key={index}
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              marginTop: 4,
-            }}
-          >
-            <span style={{ color: '#6b7280' }}>{entry.name}</span>
-            <span style={{ color: textColor }}>
-              ₱{entry.value.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
-            </span>
-          </div>
-        );
-      })}
+          return (
+            <div
+              key={index}
+              className="flex items-center justify-between text-sm font-medium"
+            >
+              <Icon className={`w-4 h-4 ${color}`} />
+              <span className={`${color} text-right w-[130px] truncate`}>
+                ₱{value.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+              </span>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };
-
-
 
 
   return (
@@ -137,34 +113,32 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         <Tooltip content={<CustomTooltip />} />
 
         <Bar
-            dataKey="income"
-            name="Income "
-            fill="url(#incomeGradient)"
-            radius={[10, 10, 10, 10]}
-            animationDuration={800}
-            />
+          dataKey="income"
+          name="Income"
+          fill="url(#incomeGradient)"
+          radius={[10, 10, 10, 10]}
+          animationDuration={800}
+        />
 
-            <Bar
-            dataKey="debts"
-            name="Debts "
-            fill="url(#debtGradient)"
-            radius={[10, 10, 10, 10]}
-            animationDuration={800}
+        <Bar
+          dataKey="debts"
+          name="Debts"
+          fill="url(#debtGradient)"
+          radius={[10, 10, 10, 10]}
+          animationDuration={800}
         />
 
         <defs>
-            <linearGradient id="incomeGradient" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#86efac" />
-                <stop offset="100%" stopColor="#22c55e" />
-            </linearGradient>
+          <linearGradient id="incomeGradient" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#86efac" />
+            <stop offset="100%" stopColor="#22c55e" />
+          </linearGradient>
 
-            {/* ✅ Correct ID: debtGradient */}
-            <linearGradient id="debtGradient" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#fca5a5" />
-                <stop offset="100%" stopColor="#ef4444" />
-            </linearGradient>
+          <linearGradient id="debtGradient" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#fca5a5" />
+            <stop offset="100%" stopColor="#ef4444" />
+          </linearGradient>
         </defs>
-
       </BarChart>
     </ResponsiveContainer>
   );
