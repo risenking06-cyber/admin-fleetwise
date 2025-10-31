@@ -151,7 +151,7 @@ export default function GroupSummaryTab({
       <thead style="background:#1e3a8a;color:white;font-size:13px;">
         <tr>
           <th style="padding:10px;text-align:left;">Travel</th>
-          <th style="padding:10px;text-align:left;">Plate / Destination</th>
+          <th style="padding:10px;text-align:left;">Plate → Destination</th>
           <th style="padding:10px;text-align:left;">Driver</th>
           <th style="padding:10px;text-align:right;">Tons</th>
           <th style="padding:10px;text-align:right;">Income</th>
@@ -315,7 +315,7 @@ export default function GroupSummaryTab({
                     Travel
                   </th>
                   <th className="text-left py-3 px-4 text-sm font-semibold">
-                    Plate / Destination
+                    Plate → Destination
                   </th>
                   <th className="text-left py-3 px-4 text-sm font-semibold">
                     Driver

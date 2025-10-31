@@ -148,7 +148,7 @@ export default function LandSummaryTab({
         <tr>
           <th style="padding:10px;text-align:left;">Land</th>
           <th style="padding:10px;text-align:left;">Travel</th>
-          <th style="padding:10px;text-align:left;">Plate / Destination</th>
+          <th style="padding:10px;text-align:left;">Plate → Destination</th>
           <th style="padding:10px;text-align:left;">Driver</th>
           <th style="padding:10px;text-align:right;">Tons</th>
           <th style="padding:10px;text-align:right;">Income</th>
@@ -330,7 +330,7 @@ export default function LandSummaryTab({
                   <th className="text-left py-3 px-4 text-sm font-semibold">Land</th>
                   <th className="text-left py-3 px-4 text-sm font-semibold">Travel</th>
                   <th className="text-left py-3 px-4 text-sm font-semibold">
-                    Plate / Destination
+                    Plate → Destination
                   </th>
                   <th className="text-left py-3 px-4 text-sm font-semibold">Driver</th>
                   <th className="text-right py-3 px-4 text-sm font-semibold">Tons</th>
