@@ -1,66 +1,207 @@
 import { useEffect, useState } from 'react';
 import ConfirmDialog from '@/components/ConfirmDialog';
-import { collection, getDocs } from 'firebase/firestore';
+import {
+  collection,
+  addDoc,
+  deleteDoc,
+  doc,
+  getDocs,
+  updateDoc,
+  query,
+  where,
+} from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Employee, Destination, Plate } from '@/types';
+import { Driver, Employee, Travel, Destination, Plate } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus } from 'lucide-react';
-import { DriverDialog } from '@/features/drivers/components/DriverDialog';
-import { DriversTable } from '@/features/drivers/components/DriversTable';
-import { useDrivers } from '@/features/drivers/hooks/useDrivers';
-import { calculateDriverTotalWage } from '@/utils/calculations';
-import { sortByName } from '@/utils/sorting';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Plus, Trash2, Edit, Eye } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function Drivers() {
-  const driversHook = useDrivers();
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const [employeesSnap, destinationsSnap, platesSnap] = await Promise.all([
-        getDocs(collection(db, 'employees')),
-        getDocs(collection(db, 'destinations')),
-        getDocs(collection(db, 'plates')),
-      ]);
-
-      driversHook.setEmployees(
-        sortByName(employeesSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Employee)))
-      );
-      driversHook.setDestinations(
-        sortByName(destinationsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Destination)))
-      );
-      driversHook.setPlates(
-        sortByName(platesSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Plate)))
-      );
-    };
-    fetchData();
-  }, []);
-
-  const getEmployeeName = (employeeId: string) =>
-    driversHook.employees.find((e) => e.id === employeeId)?.name || 'Unknown';
-
-  const getDestinationName = (id: string) =>
-    driversHook.destinations.find((d: Destination) => d.id === id)?.name || 'Unknown Destination';
-
-  const getPlateName = (id: string) =>
-    driversHook.plates.find((p: Plate) => p.id === id)?.name || 'Unknown Plate';
-
-  const availableEmployees = driversHook.employees.filter(
-    (emp) => !driversHook.drivers.some((driver) => driver.employeeId === emp.id)
-  );
-
-  const totalTons = driversHook.driverTravels.reduce((sum, t) => sum + (t.tons || 0), 0);
-  const totalTravels = driversHook.driverTravels.length;
+  const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [destinations, setDestinations] = useState<Destination[]>([]);
+  const [plates, setPlates] = useState<Plate[]>([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
+  const [driverWage, setDriverWage] = useState('');
+  const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
+  const [driverTravels, setDriverTravels] = useState<Travel[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [driverToDelete, setDriverToDelete] = useState<string | null>(null);
 
   const travelsPerPage = 5;
-  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    fetchDrivers();
+    fetchEmployees();
+    fetchDestinations();
+    fetchPlates();
+  }, []);
+
+  const fetchDrivers = async () => {
+    const querySnapshot = await getDocs(collection(db, 'drivers'));
+    const data = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Driver));
+    setDrivers(data);
+  };
+
+  
+
+  const fetchEmployees = async () => {
+    const querySnapshot = await getDocs(collection(db, 'employees'));
+    const data = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Employee));
+    setEmployees(data);
+  };
+
+  const fetchDestinations = async () => {
+    const querySnapshot = await getDocs(collection(db, 'destinations'));
+    const data = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Destination));
+    setDestinations(data);
+  };
+
+  const fetchPlates = async () => {
+    const querySnapshot = await getDocs(collection(db, 'plates'));
+    const data = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Plate));
+    setPlates(data);
+  };
+
+  const fetchDriverTravels = async (driver: Driver) => {
+    const q = query(collection(db, 'travels'), where('driver', '==', driver.employeeId));
+    const querySnapshot = await getDocs(q);
+    const data = querySnapshot.docs.map(
+      (doc) => ({ id: doc.id, ...doc.data() } as Travel)
+    );
+
+    const sorted = data.sort((a, b) => {
+      const dateA = new Date(a.name);
+      const dateB = new Date(b.name);
+
+      const isValidDateA = !isNaN(dateA.getTime());
+      const isValidDateB = !isNaN(dateB.getTime());
+
+      // ✅ Both are valid dates → sort by date (oldest → newest)
+      if (isValidDateA && isValidDateB) {
+        return dateA.getTime() - dateB.getTime();
+      }
+
+      // Only one is valid → dates come first
+      if (isValidDateA && !isValidDateB) return -1;
+      if (!isValidDateA && isValidDateB) return 1;
+
+      // Neither are valid → sort alphabetically (A → Z)
+      return a.name.localeCompare(b.name, 'en', { sensitivity: 'base' });
+    });
+
+    setDriverTravels(sorted);
+    setCurrentPage(1);
+  };
+
+  const getEmployeeName = (employeeId: string) =>
+    employees.find((e) => e.id === employeeId)?.name || 'Unknown';
+
+  const getDestinationName = (id: string) =>
+    destinations.find((d) => d.id === id)?.name || 'Unknown Destination';
+
+  const getPlateName = (id: string) =>
+    plates.find((p) => p.id === id)?.name || 'Unknown Plate';
+
+  const availableEmployees = employees.filter(
+    (emp) => !drivers.some((driver) => driver.employeeId === emp.id)
+  );
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (isSubmitting) return;
+
+    if (!driverWage || Number(driverWage) <= 0) {
+      toast.error('Please enter a valid wage');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      if (editingDriver) {
+        await updateDoc(doc(db, 'drivers', editingDriver.id), {
+          wage: Number(driverWage),
+        });
+        toast.success('Driver updated successfully');
+      } else {
+        if (!selectedEmployeeId) {
+          toast.error('Please select an employee');
+          setIsSubmitting(false);
+          return;
+        }
+        await addDoc(collection(db, 'drivers'), {
+          employeeId: selectedEmployeeId,
+          wage: Number(driverWage),
+        });
+        toast.success('Driver added successfully');
+      }
+
+      await fetchDrivers();
+      setEditingDriver(null);
+      setSelectedEmployeeId('');
+      setDriverWage('');
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error(error);
+      toast.error('Operation failed');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!driverToDelete) return;
+    await deleteDoc(doc(db, 'drivers', driverToDelete));
+    toast.success('Driver removed successfully');
+    fetchDrivers();
+    setDeleteConfirmOpen(false);
+    setDriverToDelete(null);
+  };
+
+  const handleViewDriver = async (driver: Driver) => {
+    setSelectedDriver(driver);
+    await fetchDriverTravels(driver);
+    setViewDialogOpen(true);
+  };
+
+  const calculateTotalWage = (driver: Driver, travels: Travel[]) => {
+    const totalTrips = travels.length;
+    const wage = driver.wage || 0;
+    return wage * totalTrips;
+  };
+
+  const totalTons = driverTravels.reduce((sum, t) => sum + (t.tons || 0), 0);
+  const totalTravels = driverTravels.length;
+
   const indexOfLast = currentPage * travelsPerPage;
   const indexOfFirst = indexOfLast - travelsPerPage;
-  const currentTravels = driversHook.driverTravels.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(driversHook.driverTravels.length / travelsPerPage);
+  const currentTravels = driverTravels.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(driverTravels.length / travelsPerPage);
 
-  const sortedDrivers = [...driversHook.drivers].sort((a, b) => {
+  const sortedDrivers = [...drivers].sort((a, b) => {
     const nameA = getEmployeeName(a.employeeId).toLowerCase();
     const nameB = getEmployeeName(b.employeeId).toLowerCase();
     return nameA.localeCompare(nameB);
@@ -75,47 +216,161 @@ export default function Drivers() {
           <p className="text-muted-foreground">Manage driver assignments</p>
         </div>
 
-        <Dialog open={driversHook.isDialogOpen} onOpenChange={driversHook.setIsDialogOpen}>
+        {/* Add / Edit Dialog */}
+        <Dialog
+          open={isDialogOpen}
+          onOpenChange={(open) => {
+            if (!open) setEditingDriver(null);
+            setIsDialogOpen(open);
+          }}
+        >
           <DialogTrigger asChild>
             <Button className="gap-2">
               <Plus className="w-4 h-4" />
               Add Driver
             </Button>
           </DialogTrigger>
+
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {editingDriver ? 'Edit Driver' : 'Assign Employee as Driver'}
+              </DialogTitle>
+            </DialogHeader>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {!editingDriver && (
+                <div>
+                  <Label htmlFor="employee">Select Employee</Label>
+                  <Select
+                    value={selectedEmployeeId}
+                    onValueChange={setSelectedEmployeeId}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose an employee" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableEmployees.map((employee) => (
+                        <SelectItem key={employee.id} value={employee.id}>
+                          {employee.name} - {employee.type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              <div>
+                <Label htmlFor="wage">Wage</Label>
+                <Input
+                  id="wage"
+                  type="number"
+                  value={driverWage}
+                  onChange={(e) => setDriverWage(e.target.value)}
+                  placeholder="Enter driver wage"
+                  min="0"
+                  required
+                />
+              </div>
+
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? 'Processing...' : editingDriver ? 'Update Driver' : 'Assign Driver'}
+              </Button>
+            </form>
+          </DialogContent>
         </Dialog>
       </div>
 
+      {/* Drivers Table */}
       <Card className="p-6">
-        <DriversTable
-          drivers={sortedDrivers}
-          getEmployeeName={getEmployeeName}
-          onEdit={driversHook.openEditDialog}
-          onView={driversHook.handleViewDriver}
-          onDelete={driversHook.openDeleteDialog}
-        />
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-border">
+              <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">
+                Driver Name
+              </th>
+              <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">
+                Wage
+              </th>
+              <th className="text-right py-3 px-4 text-sm font-semibold text-foreground">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {sortedDrivers.map((driver) => (
+              <tr
+                key={driver.id}
+                className="border-b border-border hover:bg-secondary/50 transition-colors"
+              >
+                <td className="py-3 px-4 text-foreground">
+                  {getEmployeeName(driver.employeeId)}
+                </td>
+                <td className="py-3 px-4 text-foreground">
+                  {driver.wage ? `₱${driver.wage}` : '-'}
+                </td>
+                <td className="py-3 px-4">
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => {
+                        setEditingDriver(driver);
+                        setDriverWage(driver.wage?.toString() || '');
+                        setIsDialogOpen(true);
+                      }}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => handleViewDriver(driver)}
+                    >
+                      <Eye className="w-4 h-4" />
+                    </Button>
+
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => {
+                        setDriverToDelete(driver.id);
+                        setDeleteConfirmOpen(true);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </Card>
 
-      <Dialog open={driversHook.viewDialogOpen} onOpenChange={driversHook.setViewDialogOpen}>
+      {/* View Driver Travels Modal */}
+      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>
-              {driversHook.selectedDriver
-                ? `${getEmployeeName(driversHook.selectedDriver.employeeId)}'s Travels`
+              {selectedDriver
+                ? `${getEmployeeName(selectedDriver.employeeId)}'s Travels`
                 : 'Driver Travels'}
             </DialogTitle>
           </DialogHeader>
 
-          {driversHook.selectedDriver && (
+          {selectedDriver && (
             <div className="space-y-4">
               <div className="bg-muted p-4 rounded-md space-y-1">
                 <p className="font-semibold">
                   Total Wage:{' '}
                   <span className="text-primary">
-                    ₱{calculateDriverTotalWage(driversHook.selectedDriver, driversHook.driverTravels).toLocaleString()}
+                    ₱{calculateTotalWage(selectedDriver, driverTravels).toLocaleString()}
                   </span>
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Wage per travel: ₱{driversHook.selectedDriver.wage} × {driversHook.driverTravels.length} travels
+                  Wage per travel: ₱{selectedDriver.wage} × {driverTravels.length} travels
                 </p>
                 <p className="text-sm text-muted-foreground">
                   Total Tons: {totalTons.toLocaleString()}
@@ -126,7 +381,7 @@ export default function Drivers() {
               </div>
 
               <Card className="p-4 max-h-[400px] overflow-y-auto">
-                {driversHook.driverTravels.length === 0 ? (
+                {driverTravels.length === 0 ? (
                   <p className="text-sm text-muted-foreground">
                     No travels found for this driver.
                   </p>
@@ -186,19 +441,10 @@ export default function Drivers() {
         </DialogContent>
       </Dialog>
 
-      <DriverDialog
-        open={driversHook.isDialogOpen}
-        onOpenChange={driversHook.setIsDialogOpen}
-        driver={driversHook.editingDriver}
-        availableEmployees={availableEmployees}
-        onSubmit={driversHook.handleSubmit}
-        isSubmitting={driversHook.isSubmitting}
-      />
-
       <ConfirmDialog
-        open={driversHook.deleteConfirmOpen}
-        onOpenChange={driversHook.setDeleteConfirmOpen}
-        onConfirm={driversHook.handleDelete}
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        onConfirm={handleDelete}
         title="Delete Driver"
         description="Are you sure you want to remove this driver? This action cannot be undone."
         confirmText="Delete"
